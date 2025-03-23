@@ -11,7 +11,7 @@ CREATE TABLE "death" (
 CREATE TABLE "map" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" varchar(255) NOT NULL,
-	"started_at" timestamp NOT NULL
+	"started_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "player_record" (
