@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { type InferSelectModel, relations } from "drizzle-orm";
 import { integer, pgTable, serial, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { death } from "./death";
@@ -20,6 +20,8 @@ export const roundRelations = relations(playerRecord, ({ one, many }) => ({
 	}),
 	deaths: many(death),
 }));
+
+export type PlayerRecord = InferSelectModel<typeof playerRecord>;
 
 export const selectPlayerRecordSchema = createSelectSchema(playerRecord);
 

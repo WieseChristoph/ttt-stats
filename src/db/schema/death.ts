@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { type InferSelectModel, relations } from "drizzle-orm";
 import {
 	boolean,
 	integer,
@@ -19,7 +19,7 @@ export const death = pgTable("death", {
 	isTeamkill: boolean("is_teamkill").notNull().default(false),
 	inflictor: varchar("inflictor", { length: 255 }),
 	hitgroup: integer("hitgroup"),
-	timeOfDeath: timestamp("time_of_death"),
+	timeOfDeath: timestamp("time_of_death", { mode: "string" }),
 });
 
 export const deathRelations = relations(death, ({ one }) => ({
@@ -28,6 +28,8 @@ export const deathRelations = relations(death, ({ one }) => ({
 		references: [playerRecord.id],
 	}),
 }));
+
+export type Death = InferSelectModel<typeof death>;
 
 export const selectDeathSchema = createSelectSchema(death);
 
