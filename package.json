@@ -13,7 +13,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "drizzle-orm": "^0.41.0",
+    "drizzle-zod": "^0.7.0",
     "next": "15.2.3",
+    "pg": "^8.14.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -21,14 +24,18 @@
     "@biomejs/biome": "1.9.4",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.11.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.30.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
       "@biomejs/biome",
+      "esbuild",
+      "libpq",
       "sharp"
     ]
   }
