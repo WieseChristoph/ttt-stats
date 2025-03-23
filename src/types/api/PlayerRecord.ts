@@ -1,4 +1,4 @@
-import type { Death } from "@/db/schema/death";
-import type { PlayerRecord } from "@/db/schema/playerRecord";
+import type { NewDeath } from "@/db/schema/death";
+import type { NewPlayerRecord } from "@/db/schema/playerRecord";
 
-export type ApiPlayerRecord = PlayerRecord & { deaths?: Death[] };
+export type ApiPlayerRecord = NewPlayerRecord & { deaths?: NewDeath[] };

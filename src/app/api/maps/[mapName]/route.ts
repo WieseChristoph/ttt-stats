@@ -1,5 +1,6 @@
 import { addMap } from "@/actions/mapAction";
 import type { NextRequest } from "next/server";
+import { ZodError } from "zod";
 
 export async function PUT(
 	request: NextRequest,
@@ -10,6 +11,9 @@ export async function PUT(
 	try {
 		await addMap(mapName);
 	} catch (error) {
+		if (error instanceof ZodError)
+			return new Response(JSON.stringify(error.errors), { status: 400 });
+
 		return new Response(JSON.stringify(error), { status: 500 });
 	}
 

@@ -1,4 +1,8 @@
-import { type InferSelectModel, relations } from "drizzle-orm";
+import {
+	type InferInsertModel,
+	type InferSelectModel,
+	relations,
+} from "drizzle-orm";
 import {
 	boolean,
 	integer,
@@ -30,6 +34,8 @@ export const deathRelations = relations(death, ({ one }) => ({
 }));
 
 export type Death = InferSelectModel<typeof death>;
+
+export type NewDeath = InferInsertModel<typeof death>;
 
 export const selectDeathSchema = createSelectSchema(death);
 

@@ -1,4 +1,8 @@
-import { type InferSelectModel, relations } from "drizzle-orm";
+import {
+	type InferInsertModel,
+	type InferSelectModel,
+	relations,
+} from "drizzle-orm";
 import {
 	integer,
 	pgTable,
@@ -29,6 +33,8 @@ export const roundRelations = relations(round, ({ one, many }) => ({
 }));
 
 export type Round = InferSelectModel<typeof round>;
+
+export type NewRound = InferInsertModel<typeof round>;
 
 export const selectRoundSchema = createSelectSchema(round);
 

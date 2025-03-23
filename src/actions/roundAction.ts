@@ -21,31 +21,35 @@ export const addRound = async (data: ApiRound) => {
 
 		const roundId = insertedRoundIds[0].id;
 
-		if (data.playerRecords && data.playerRecords.length > 0) {
-			const parsedPlayerRecords = z.array(insertPlayerRecordSchema).parse(
-				data.playerRecords.map((playerRecord) => ({
-					...playerRecord,
-					roundId,
+		if (!data.playerRecords || data.playerRecords.length === 0) {
+			return;
+		}
+
+		const parsedPlayerRecords = z.array(insertPlayerRecordSchema).parse(
+			data.playerRecords.map((playerRecord) => ({
+				...playerRecord,
+				roundId,
+			})),
+		);
+
+		const insertedPlayerRecordIds: { id: number }[] = await tx
+			.insert(playerRecord)
+			.values(parsedPlayerRecords)
+			.returning({ id: playerRecord.id });
+
+		for (const [index, playerRecord] of data.playerRecords.entries()) {
+			if (!playerRecord.deaths || playerRecord.deaths.length === 0) {
+				continue;
+			}
+
+			const parsedDeaths = z.array(insertDeathSchema).parse(
+				playerRecord.deaths.map((death) => ({
+					...death,
+					playerRecordId: insertedPlayerRecordIds[index].id,
 				})),
 			);
 
-			const insertedPlayerRecordIds: { id: number }[] = await tx
-				.insert(playerRecord)
-				.values(parsedPlayerRecords)
-				.returning({ id: playerRecord.id });
-
-			for (const [index, playerRecord] of data.playerRecords.entries()) {
-				if (playerRecord.deaths && playerRecord.deaths.length > 0) {
-					const parsedDeaths = z.array(insertDeathSchema).parse(
-						playerRecord.deaths.map((death) => ({
-							...death,
-							playerRecordId: insertedPlayerRecordIds[index].id,
-						})),
-					);
-
-					await tx.insert(death).values(parsedDeaths);
-				}
-			}
+			await tx.insert(death).values(parsedDeaths);
 		}
 	});
 };

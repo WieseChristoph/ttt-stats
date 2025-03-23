@@ -10,7 +10,9 @@
     "check": "biome check ./src",
     "fix": "biome check --write ./src",
     "format": "biome format --write ./src",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
     "drizzle-orm": "^0.41.0",

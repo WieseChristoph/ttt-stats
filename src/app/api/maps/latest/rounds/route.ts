@@ -10,11 +10,11 @@ export async function PUT(request: NextRequest) {
 	if (!latestMap)
 		return new Response("There is no map to add a round to", { status: 400 });
 
+	const body = await request.json();
+	const round = { ...body, mapId: latestMap.id } as ApiRound;
+
 	try {
-		await addRound({
-			...(await request.json()),
-			mapId: latestMap.id,
-		} as ApiRound);
+		await addRound(round);
 	} catch (error) {
 		if (error instanceof ZodError)
 			return new Response(JSON.stringify(error.errors), { status: 400 });
