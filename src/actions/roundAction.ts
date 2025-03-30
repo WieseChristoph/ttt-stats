@@ -8,6 +8,7 @@ import {
 } from "@/db/schema/playerRecord";
 import { insertRoundSchema, round } from "@/db/schema/round";
 import type { ApiRound } from "@/types/api/Round";
+import { and, count, eq, gte, lte } from "drizzle-orm";
 import { z } from "zod";
 
 export const addRound = async (data: ApiRound) => {
@@ -52,4 +53,37 @@ export const addRound = async (data: ApiRound) => {
 			await tx.insert(death).values(parsedDeaths);
 		}
 	});
+};
+
+export const getRoundCount = async (fromDate: Date, toDate: Date) => {
+	const result = await db
+		.select({ count: count(round.id) })
+		.from(round)
+		.where(
+			and(
+				gte(round.startedAt, fromDate.toDateString()),
+				lte(round.startedAt, toDate.toDateString()),
+			),
+		);
+
+	return result.pop()?.count;
+};
+
+export const getRoundWinsByTeam = async (
+	team: string,
+	fromDate: Date,
+	toDate: Date,
+) => {
+	const result = await db
+		.select({ count: count(round.id) })
+		.from(round)
+		.where(
+			and(
+				eq(round.winningTeam, team),
+				gte(round.startedAt, fromDate.toDateString()),
+				lte(round.startedAt, toDate.toDateString()),
+			),
+		);
+
+	return result.pop()?.count;
 };

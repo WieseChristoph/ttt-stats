@@ -2,7 +2,8 @@
 
 import { db } from "@/db/drizzle";
 import { insertMapSchema, map, selectMapSchema } from "@/db/schema/map";
-import { desc } from "drizzle-orm";
+import { round } from "@/db/schema/round";
+import { and, countDistinct, desc, eq, gte, lte } from "drizzle-orm";
 import { z } from "zod";
 
 export const getMaps = async () => {
@@ -21,4 +22,19 @@ export const addMap = async (name: string) => {
 	const parsedMap = insertMapSchema.parse({ name });
 
 	await db.insert(map).values(parsedMap);
+};
+
+export const getMapCount = async (fromDate: Date, toDate: Date) => {
+	const result = await db
+		.select({ count: countDistinct(map.id) })
+		.from(map)
+		.fullJoin(round, eq(map.id, round.mapId))
+		.where(
+			and(
+				gte(map.startedAt, fromDate.toDateString()),
+				lte(map.startedAt, toDate.toDateString()),
+			),
+		);
+
+	return result.pop()?.count;
 };
