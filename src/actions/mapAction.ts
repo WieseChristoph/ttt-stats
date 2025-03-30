@@ -3,7 +3,18 @@
 import { db } from "@/db/drizzle";
 import { insertMapSchema, map, selectMapSchema } from "@/db/schema/map";
 import { round } from "@/db/schema/round";
-import { and, countDistinct, desc, eq, gte, lte } from "drizzle-orm";
+import {
+	and,
+	avg,
+	count,
+	countDistinct,
+	desc,
+	eq,
+	gte,
+	lte,
+	max,
+	sql,
+} from "drizzle-orm";
 import { z } from "zod";
 
 export const getMaps = async () => {
@@ -37,4 +48,22 @@ export const getMapCount = async (fromDate: Date, toDate: Date) => {
 		);
 
 	return result.pop()?.count;
+};
+
+export const getGroupedMaps = async () => {
+	const results = await db
+		.select({
+			name: map.name,
+			lastPlayed: max(round.endedAt).mapWith(Date),
+			timesPlayed: count(map.id),
+			avgRoundDuration: avg(
+				sql`EXTRACT(EPOCH FROM (${round.endedAt} - ${round.startedAt}))`,
+			).mapWith(Number),
+		})
+		.from(map)
+		.fullJoin(round, eq(map.id, round.mapId))
+		.groupBy(map.name)
+		.orderBy(desc(count(map.id)));
+
+	return results;
 };
