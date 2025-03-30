@@ -1,5 +1,6 @@
 import { getLatestMap } from "@/actions/mapAction";
 import { addRound } from "@/actions/roundAction";
+import { getAllSteamIds, loadSteamUsersByIds } from "@/actions/steamUserAction";
 import type { ApiRound } from "@/types/api/Round";
 import type { NextRequest } from "next/server";
 import { ZodError } from "zod";
@@ -15,6 +16,15 @@ export async function PUT(request: NextRequest) {
 
 	try {
 		await addRound(round);
+
+		const allSteamIds = await getAllSteamIds();
+		const roundSteamIds =
+			round.playerRecords?.map((playerRecord) => playerRecord.steamId) ?? [];
+		const newSteamIds = roundSteamIds.filter(
+			(steamId) => !allSteamIds.includes(steamId),
+		);
+
+		await loadSteamUsersByIds(newSteamIds);
 	} catch (error) {
 		if (error instanceof ZodError)
 			return new Response(JSON.stringify(error.errors), { status: 400 });
