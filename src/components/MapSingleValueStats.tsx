@@ -1,13 +1,14 @@
 "use client";
 
-import { Award, Calendar, Clock, Users } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { StatCard } from "./StatCard";
-import dayjs from "dayjs";
 import {
 	getMapSingleValueStats,
 	getMostCommonWinner,
 } from "@/actions/mapAction";
+import { cFirst } from "@/lib/utils";
+import dayjs from "dayjs";
+import { Award, Calendar, Clock, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { StatCard } from "./StatCard";
 
 interface MapSingleValueStatsProps {
 	mapName: string;
@@ -35,9 +36,7 @@ export function MapSingleValueStats({ mapName }: MapSingleValueStatsProps) {
 				return;
 			}
 
-			const teamName = result.team
-				? result.team.charAt(0).toUpperCase() + result.team.slice(1)
-				: "";
+			const teamName = result.team ? cFirst(result.team) : "";
 
 			setMostCommonWinner(`${teamName} (${result.winPercentage.toFixed(1)}%)`);
 		});

@@ -17,13 +17,16 @@ export const playerRecord = pgTable("player_record", {
 	teamName: varchar("team_name", { length: 255 }).notNull(),
 });
 
-export const roundRelations = relations(playerRecord, ({ one, many }) => ({
-	round: one(round, {
-		fields: [playerRecord.roundId],
-		references: [round.id],
+export const playerRecordRelations = relations(
+	playerRecord,
+	({ one, many }) => ({
+		round: one(round, {
+			fields: [playerRecord.roundId],
+			references: [round.id],
+		}),
+		deaths: many(death),
 	}),
-	deaths: many(death),
-}));
+);
 
 export type PlayerRecord = InferSelectModel<typeof playerRecord>;
 

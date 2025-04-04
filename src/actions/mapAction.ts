@@ -5,6 +5,7 @@ import { db } from "@/db/drizzle";
 import { insertMapSchema, map, selectMapSchema } from "@/db/schema/map";
 import { round } from "@/db/schema/round";
 import {
+	type SQL,
 	and,
 	asc,
 	avg,
@@ -17,7 +18,6 @@ import {
 	lte,
 	max,
 	min,
-	type SQL,
 	sql,
 } from "drizzle-orm";
 import { z } from "zod";
@@ -136,3 +136,21 @@ function getOrderBySortOption(sortOption: SortOption): SQL {
 			);
 	}
 }
+
+export const getMapSessionsByName = async (mapName: string) => {
+	const results = await db
+		.select({ id: map.id })
+		.from(map)
+		.innerJoin(round, eq(map.id, round.mapId));
+
+	return db.query.map.findMany({
+		with: {
+			rounds: true,
+		},
+		where: (map, { inArray }) =>
+			inArray(
+				map.id,
+				results.map((result) => result.id),
+			),
+	});
+};

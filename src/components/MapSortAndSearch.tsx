@@ -1,5 +1,5 @@
-import { Input } from "./ui/input";
 import { Search } from "lucide-react";
+import { Input } from "./ui/input";
 import {
 	Select,
 	SelectContent,

@@ -23,3 +23,7 @@ export function buildConflictUpdateColumns<
 		{} as Record<Q, SQL>,
 	);
 }
+
+export function cFirst(string: string): string {
+	return string.charAt(0).toUpperCase() + string.slice(1);
+}
