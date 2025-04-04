@@ -1,18 +1,22 @@
 "use server";
 
+import { SortOption } from "@/components/MapSortAndSearch";
 import { db } from "@/db/drizzle";
 import { insertMapSchema, map, selectMapSchema } from "@/db/schema/map";
 import { round } from "@/db/schema/round";
 import {
 	and,
+	asc,
 	avg,
 	count,
 	countDistinct,
 	desc,
 	eq,
 	gte,
+	like,
 	lte,
 	max,
+	type SQL,
 	sql,
 } from "drizzle-orm";
 import { z } from "zod";
@@ -50,7 +54,10 @@ export const getMapCount = async (fromDate: Date, toDate: Date) => {
 	return result.pop()?.count;
 };
 
-export const getGroupedMaps = async () => {
+export const getGroupedMaps = async (
+	sortOption: SortOption,
+	searchQuery: string,
+) => {
 	const results = await db
 		.select({
 			name: map.name,
@@ -61,9 +68,31 @@ export const getGroupedMaps = async () => {
 			).mapWith(Number),
 		})
 		.from(map)
+		.where(
+			searchQuery
+				? like(map.name, `%${searchQuery.toLowerCase()}%`)
+				: undefined,
+		)
 		.fullJoin(round, eq(map.id, round.mapId))
 		.groupBy(map.name)
-		.orderBy(desc(count(map.id)));
+		.orderBy(getOrderBySortOption(sortOption));
 
 	return results;
 };
+
+function getOrderBySortOption(sortOption: SortOption): SQL {
+	switch (sortOption) {
+		case SortOption.Recent:
+			return desc(max(round.endedAt).mapWith(Date));
+		case SortOption.Alpabetical:
+			return asc(map.name);
+		case SortOption.MostPlayed:
+			return desc(count(map.id));
+		case SortOption.Duration:
+			return desc(
+				avg(
+					sql`EXTRACT(EPOCH FROM (${round.endedAt} - ${round.startedAt}))`,
+				).mapWith(Number),
+			);
+	}
+}
