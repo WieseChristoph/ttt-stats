@@ -62,7 +62,7 @@ export const getGroupedMaps = async (
 	const results = await db
 		.select({
 			name: map.name,
-			lastPlayed: max(round.endedAt).mapWith(Date),
+			lastPlayed: max(round.startedAt),
 			timesPlayed: count(map.id),
 			avgRoundDuration: avg(
 				sql`EXTRACT(EPOCH FROM (${round.endedAt} - ${round.startedAt}))`,

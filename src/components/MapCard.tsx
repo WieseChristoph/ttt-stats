@@ -16,7 +16,7 @@ dayjs.extend(relativeTime);
 
 export interface MapCardProps {
 	name: string | null;
-	lastPlayed: string;
+	lastPlayed: string | null;
 	timesPlayed: number;
 	avgRoundDuration: number;
 }
