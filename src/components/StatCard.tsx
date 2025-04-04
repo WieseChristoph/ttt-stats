@@ -13,7 +13,7 @@ interface StatCardProps {
 	value: string | number;
 	icon: ReactNode;
 	iconBg: string;
-	cardClass: string;
+	cardClass?: string;
 }
 
 export function StatCard({

@@ -1,8 +1,8 @@
 "use client";
 
 import { DateRangePicker } from "@/components/DateRangePicker";
+import { HomeSingleValueStats } from "@/components/HomeSingleValueStats";
 import { RoleWinRateChart } from "@/components/RoleWinRateChart";
-import { SingleValueStats } from "@/components/SingleValueStats";
 import { StatChartCard } from "@/components/StatChartCard";
 import { WeaponUsageChart } from "@/components/WeaponUsageChart";
 import { addDays } from "date-fns";
@@ -23,7 +23,7 @@ export default function Home() {
 				<DateRangePicker dateRange={dateRange} onSelect={setDateRange} />
 			</div>
 
-			<SingleValueStats dateRange={dateRange} />
+			<HomeSingleValueStats dateRange={dateRange} />
 
 			<div className="grid gap-8 md:grid-cols-2 mb-12">
 				<StatChartCard

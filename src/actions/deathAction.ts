@@ -23,8 +23,8 @@ export const getKillsByInflictor = async (
 	const result = await db
 		.select({ inflictor: death.inflictor, kills: countDistinct(death.id) })
 		.from(death)
-		.fullJoin(playerRecord, eq(death.playerRecordId, playerRecord.id))
-		.fullJoin(round, eq(playerRecord.roundId, round.id))
+		.innerJoin(playerRecord, eq(death.playerRecordId, playerRecord.id))
+		.innerJoin(round, eq(playerRecord.roundId, round.id))
 		.where(
 			and(
 				gte(round.startedAt, fromDate.toDateString()),

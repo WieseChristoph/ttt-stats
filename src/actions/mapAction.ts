@@ -16,6 +16,7 @@ import {
 	like,
 	lte,
 	max,
+	min,
 	type SQL,
 	sql,
 } from "drizzle-orm";
@@ -43,7 +44,7 @@ export const getMapCount = async (fromDate: Date, toDate: Date) => {
 	const result = await db
 		.select({ count: countDistinct(map.id) })
 		.from(map)
-		.fullJoin(round, eq(map.id, round.mapId))
+		.innerJoin(round, eq(map.id, round.mapId))
 		.where(
 			and(
 				gte(map.startedAt, fromDate.toDateString()),
@@ -73,11 +74,50 @@ export const getGroupedMaps = async (
 				? like(map.name, `%${searchQuery.toLowerCase()}%`)
 				: undefined,
 		)
-		.fullJoin(round, eq(map.id, round.mapId))
+		.innerJoin(round, eq(map.id, round.mapId))
 		.groupBy(map.name)
 		.orderBy(getOrderBySortOption(sortOption));
 
 	return results;
+};
+
+export const getMapSingleValueStats = async (mapName: string) => {
+	const results = await db
+		.select({
+			firstTimePlayed: min(round.startedAt),
+			timesPlayed: countDistinct(map.id),
+			totalRounds: count(round.id),
+		})
+		.from(map)
+		.where(eq(map.name, mapName))
+		.innerJoin(round, eq(map.id, round.mapId));
+
+	return results.pop();
+};
+
+export const getMostCommonWinner = async (mapName: string) => {
+	const results = await db
+		.select({
+			team: round.winningTeam,
+			wins: count(round.id),
+		})
+		.from(map)
+		.where(eq(map.name, mapName))
+		.innerJoin(round, eq(map.id, round.mapId))
+		.groupBy(round.winningTeam)
+		.orderBy(desc(count(round.id)));
+
+	const totalWins = results.reduce((prev, curr) => prev + curr.wins, 0);
+	const result = results.shift();
+
+	if (!result) {
+		return null;
+	}
+
+	return {
+		...result,
+		winPercentage: (result.wins / totalWins) * 100,
+	};
 };
 
 function getOrderBySortOption(sortOption: SortOption): SQL {

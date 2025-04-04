@@ -7,11 +7,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { StatCard } from "./StatCard";
 
-interface SingleValueStatsProps {
+interface HomeSingleValueStatsProps {
 	dateRange?: DateRange;
 }
 
-export function SingleValueStats({ dateRange }: SingleValueStatsProps) {
+export function HomeSingleValueStats({ dateRange }: HomeSingleValueStatsProps) {
 	const [mapCount, setMapCount] = useState<number>(0);
 	const [roundCount, setRoundCount] = useState<number>(0);
 	const [innocentWins, setInnocentWins] = useState<number>(0);
@@ -58,7 +58,6 @@ export function SingleValueStats({ dateRange }: SingleValueStatsProps) {
 				value: `${roundCount > 0 ? ((traitorWins / roundCount) * 100).toFixed(1) : 0}%`,
 				icon: <Users className="h-6 w-6 text-red-400" />,
 				iconBg: "bg-red-900/30",
-				cardClass: "card-traitor",
 			},
 			{
 				title: "Innocent Win Rate",
@@ -66,7 +65,6 @@ export function SingleValueStats({ dateRange }: SingleValueStatsProps) {
 				value: `${roundCount > 0 ? ((innocentWins / roundCount) * 100).toFixed(1) : 0}%`,
 				icon: <Users className="h-6 w-6 text-green-400" />,
 				iconBg: "bg-green-900/30",
-				cardClass: "card-innocent",
 			},
 			{
 				title: "Maps Played",
@@ -74,7 +72,6 @@ export function SingleValueStats({ dateRange }: SingleValueStatsProps) {
 				value: mapCount,
 				icon: <MapIcon className="h-6 w-6 text-amber-400" />,
 				iconBg: "bg-amber-900/30",
-				cardClass: "card-stats",
 			},
 			{
 				title: "Total Rounds",
@@ -82,7 +79,6 @@ export function SingleValueStats({ dateRange }: SingleValueStatsProps) {
 				value: roundCount,
 				icon: <Timer className="h-6 w-6 text-blue-400" />,
 				iconBg: "bg-blue-900/30",
-				cardClass: "card-detective",
 			},
 		],
 		[mapCount, roundCount, innocentWins, traitorWins],
