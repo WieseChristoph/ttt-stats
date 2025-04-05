@@ -1,19 +1,13 @@
 "use server";
 
 import { db } from "@/db/drizzle";
-import {
-	type NewSteamUser,
-	insertSteamUserSchema,
-	steamUser,
-} from "@/db/schema/steamUser";
+import { type NewSteamUser, insertSteamUserSchema, steamUser } from "@/db/schema/steamUser";
 import { getSteamDataByIds } from "@/lib/steam";
 import { buildConflictUpdateColumns } from "@/lib/utils";
 import { z } from "zod";
 
 export const getAllSteamIds = async () => {
-	const results = await db
-		.select({ steamId: steamUser.steamId })
-		.from(steamUser);
+	const results = await db.select({ steamId: steamUser.steamId }).from(steamUser);
 
 	return results.map((result) => result.steamId);
 };
@@ -36,21 +30,13 @@ export const loadSteamUsersByIds = async (steamIds: string[]) => {
 			}) as NewSteamUser,
 	);
 
-	const parsedSteamUsers = z
-		.array(insertSteamUserSchema)
-		.parse(mappedSteamUsers);
+	const parsedSteamUsers = z.array(insertSteamUserSchema).parse(mappedSteamUsers);
 
 	await db
 		.insert(steamUser)
 		.values(parsedSteamUsers)
 		.onConflictDoUpdate({
 			target: steamUser.steamId,
-			set: buildConflictUpdateColumns(steamUser, [
-				"username",
-				"profileUrl",
-				"avatar",
-				"avatarMedium",
-				"avatarFull",
-			]),
+			set: buildConflictUpdateColumns(steamUser, ["username", "profileUrl", "avatar", "avatarMedium", "avatarFull"]),
 		});
 };

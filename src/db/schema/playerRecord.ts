@@ -1,8 +1,4 @@
-import {
-	type InferInsertModel,
-	type InferSelectModel,
-	relations,
-} from "drizzle-orm";
+import { type InferInsertModel, type InferSelectModel, relations } from "drizzle-orm";
 import { integer, pgTable, serial, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { death } from "./death";
@@ -17,16 +13,13 @@ export const playerRecord = pgTable("player_record", {
 	teamName: varchar("team_name", { length: 255 }).notNull(),
 });
 
-export const playerRecordRelations = relations(
-	playerRecord,
-	({ one, many }) => ({
-		round: one(round, {
-			fields: [playerRecord.roundId],
-			references: [round.id],
-		}),
-		deaths: many(death),
+export const playerRecordRelations = relations(playerRecord, ({ one, many }) => ({
+	round: one(round, {
+		fields: [playerRecord.roundId],
+		references: [round.id],
 	}),
-);
+	deaths: many(death),
+}));
 
 export type PlayerRecord = InferSelectModel<typeof playerRecord>;
 

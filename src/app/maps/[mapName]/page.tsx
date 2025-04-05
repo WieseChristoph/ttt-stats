@@ -22,9 +22,7 @@ export default function MapInfo() {
 
 	const toggleSession = (sessionId: number) => {
 		setOpenSessions((prev) =>
-			prev.includes(sessionId)
-				? prev.filter((id) => id !== sessionId)
-				: [...prev, sessionId],
+			prev.includes(sessionId) ? prev.filter((id) => id !== sessionId) : [...prev, sessionId],
 		);
 	};
 

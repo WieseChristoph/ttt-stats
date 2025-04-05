@@ -3,13 +3,7 @@ import duration from "dayjs/plugin/duration";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { BarChart2, Clock } from "lucide-react";
 import Link from "next/link";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "./ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
@@ -21,12 +15,7 @@ export interface MapCardProps {
 	avgRoundDuration: number;
 }
 
-export function MapCard({
-	name,
-	lastPlayed,
-	timesPlayed,
-	avgRoundDuration,
-}: MapCardProps) {
+export function MapCard({ name, lastPlayed, timesPlayed, avgRoundDuration }: MapCardProps) {
 	return (
 		<Link href={`/maps/${name}`} className="block group">
 			<Card className="h-full border-zinc-700 bg-zinc-800/50 overflow-hidden transition-all duration-100 group-hover:scale-[1.02] group-hover:shadow-lg group-hover:shadow-zinc-900/50">
@@ -50,10 +39,7 @@ export function MapCard({
 						</div>
 						<div className="flex items-center gap-1.5">
 							<Clock className="h-4 w-4 text-zinc-400" />
-							<span>
-								Avg. Round:{" "}
-								{dayjs.duration(avgRoundDuration, "seconds").format("mm:ss")}
-							</span>
+							<span>Avg. Round: {dayjs.duration(avgRoundDuration, "seconds").format("mm:ss")}</span>
 						</div>
 					</div>
 				</CardContent>

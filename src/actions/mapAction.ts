@@ -4,22 +4,7 @@ import { SortOption } from "@/components/MapSortAndSearch";
 import { db } from "@/db/drizzle";
 import { insertMapSchema, map, selectMapSchema } from "@/db/schema/map";
 import { round } from "@/db/schema/round";
-import {
-	type SQL,
-	and,
-	asc,
-	avg,
-	count,
-	countDistinct,
-	desc,
-	eq,
-	gte,
-	like,
-	lte,
-	max,
-	min,
-	sql,
-} from "drizzle-orm";
+import { type SQL, and, asc, avg, count, countDistinct, desc, eq, gte, like, lte, max, min, sql } from "drizzle-orm";
 import { z } from "zod";
 
 export const getMaps = async () => {
@@ -45,35 +30,21 @@ export const getMapCount = async (fromDate: Date, toDate: Date) => {
 		.select({ count: countDistinct(map.id) })
 		.from(map)
 		.innerJoin(round, eq(map.id, round.mapId))
-		.where(
-			and(
-				gte(map.startedAt, fromDate.toDateString()),
-				lte(map.startedAt, toDate.toDateString()),
-			),
-		);
+		.where(and(gte(map.startedAt, fromDate.toDateString()), lte(map.startedAt, toDate.toDateString())));
 
 	return result.pop()?.count;
 };
 
-export const getGroupedMaps = async (
-	sortOption: SortOption,
-	searchQuery: string,
-) => {
+export const getGroupedMaps = async (sortOption: SortOption, searchQuery: string) => {
 	const results = await db
 		.select({
 			name: map.name,
 			lastPlayed: max(round.startedAt),
 			timesPlayed: count(map.id),
-			avgRoundDuration: avg(
-				sql`EXTRACT(EPOCH FROM (${round.endedAt} - ${round.startedAt}))`,
-			).mapWith(Number),
+			avgRoundDuration: avg(sql`EXTRACT(EPOCH FROM (${round.endedAt} - ${round.startedAt}))`).mapWith(Number),
 		})
 		.from(map)
-		.where(
-			searchQuery
-				? like(map.name, `%${searchQuery.toLowerCase()}%`)
-				: undefined,
-		)
+		.where(searchQuery ? like(map.name, `%${searchQuery.toLowerCase()}%`) : undefined)
 		.innerJoin(round, eq(map.id, round.mapId))
 		.groupBy(map.name)
 		.orderBy(getOrderBySortOption(sortOption));
@@ -129,19 +100,12 @@ function getOrderBySortOption(sortOption: SortOption): SQL {
 		case SortOption.MostPlayed:
 			return desc(count(map.id));
 		case SortOption.Duration:
-			return desc(
-				avg(
-					sql`EXTRACT(EPOCH FROM (${round.endedAt} - ${round.startedAt}))`,
-				).mapWith(Number),
-			);
+			return desc(avg(sql`EXTRACT(EPOCH FROM (${round.endedAt} - ${round.startedAt}))`).mapWith(Number));
 	}
 }
 
 export const getMapSessionsByName = async (mapName: string) => {
-	const results = await db
-		.select({ id: map.id })
-		.from(map)
-		.innerJoin(round, eq(map.id, round.mapId));
+	const results = await db.select({ id: map.id }).from(map).innerJoin(round, eq(map.id, round.mapId));
 
 	return db.query.map.findMany({
 		with: {

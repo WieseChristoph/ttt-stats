@@ -1,12 +1,6 @@
 import { Search } from "lucide-react";
 import { Input } from "./ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "./ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 export enum SortOption {
 	Recent = "recent",
@@ -48,13 +42,9 @@ export function MapSortAndSearch({
 						</SelectTrigger>
 						<SelectContent className="bg-zinc-800 border-zinc-700 text-zinc-100">
 							<SelectItem value={SortOption.Recent}>Recently Played</SelectItem>
-							<SelectItem value={SortOption.Alpabetical}>
-								Alphabetical
-							</SelectItem>
+							<SelectItem value={SortOption.Alpabetical}>Alphabetical</SelectItem>
 							<SelectItem value={SortOption.MostPlayed}>Most Played</SelectItem>
-							<SelectItem value={SortOption.Duration}>
-								Round Duration
-							</SelectItem>
+							<SelectItem value={SortOption.Duration}>Round Duration</SelectItem>
 						</SelectContent>
 					</Select>
 				</div>

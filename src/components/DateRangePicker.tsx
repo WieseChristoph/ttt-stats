@@ -6,11 +6,7 @@ import type { DateRange, SelectRangeEventHandler } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 interface DateRangePickerProps {
@@ -19,11 +15,7 @@ interface DateRangePickerProps {
 	className?: string;
 }
 
-export function DateRangePicker({
-	dateRange,
-	onSelect,
-	className,
-}: DateRangePickerProps) {
+export function DateRangePicker({ dateRange, onSelect, className }: DateRangePickerProps) {
 	return (
 		<div className={cn("grid gap-2", className)}>
 			<Popover>
@@ -40,8 +32,7 @@ export function DateRangePicker({
 						{dateRange?.from ? (
 							dateRange.to ? (
 								<>
-									{format(dateRange.from, "LLL dd, y")} -{" "}
-									{format(dateRange.to, "LLL dd, y")}
+									{format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")}
 								</>
 							) : (
 								format(dateRange.from, "LLL dd, y")
@@ -51,10 +42,7 @@ export function DateRangePicker({
 						)}
 					</Button>
 				</PopoverTrigger>
-				<PopoverContent
-					className="w-auto p-0 bg-zinc-800 border-zinc-700"
-					align="start"
-				>
+				<PopoverContent className="w-auto p-0 bg-zinc-800 border-zinc-700" align="start">
 					<Calendar
 						initialFocus
 						mode="range"

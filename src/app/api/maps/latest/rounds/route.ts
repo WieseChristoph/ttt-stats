@@ -8,8 +8,7 @@ import { ZodError } from "zod";
 export async function PUT(request: NextRequest) {
 	const latestMap = await getLatestMap();
 
-	if (!latestMap)
-		return new Response("There is no map to add a round to", { status: 400 });
+	if (!latestMap) return new Response("There is no map to add a round to", { status: 400 });
 
 	const body = await request.json();
 	const round = { ...body, mapId: latestMap.id } as ApiRound;
@@ -18,16 +17,12 @@ export async function PUT(request: NextRequest) {
 		await addRound(round);
 
 		const allSteamIds = await getAllSteamIds();
-		const roundSteamIds =
-			round.playerRecords?.map((playerRecord) => playerRecord.steamId) ?? [];
-		const newSteamIds = roundSteamIds.filter(
-			(steamId) => !allSteamIds.includes(steamId),
-		);
+		const roundSteamIds = round.playerRecords?.map((playerRecord) => playerRecord.steamId) ?? [];
+		const newSteamIds = roundSteamIds.filter((steamId) => !allSteamIds.includes(steamId));
 
 		await loadSteamUsersByIds(newSteamIds);
 	} catch (error) {
-		if (error instanceof ZodError)
-			return new Response(JSON.stringify(error.errors), { status: 400 });
+		if (error instanceof ZodError) return new Response(JSON.stringify(error.errors), { status: 400 });
 
 		return new Response(JSON.stringify(error), { status: 500 });
 	}

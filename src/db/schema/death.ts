@@ -1,16 +1,5 @@
-import {
-	type InferInsertModel,
-	type InferSelectModel,
-	relations,
-} from "drizzle-orm";
-import {
-	boolean,
-	integer,
-	pgTable,
-	serial,
-	timestamp,
-	varchar,
-} from "drizzle-orm/pg-core";
+import { type InferInsertModel, type InferSelectModel, relations } from "drizzle-orm";
+import { boolean, integer, pgTable, serial, timestamp, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { playerRecord } from "./playerRecord";
 

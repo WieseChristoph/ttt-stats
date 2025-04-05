@@ -1,9 +1,6 @@
 "use client";
 
-import {
-	getMapSingleValueStats,
-	getMostCommonWinner,
-} from "@/actions/mapAction";
+import { getMapSingleValueStats, getMostCommonWinner } from "@/actions/mapAction";
 import { cFirst } from "@/lib/utils";
 import dayjs from "dayjs";
 import { Award, Calendar, Clock, Users } from "lucide-react";
@@ -49,28 +46,24 @@ export function MapSingleValueStats({ mapName }: MapSingleValueStatsProps) {
 				description: "The first time this map was played",
 				value: dayjs(firstPlayed).format("DD/MM/YYYY - HH:mm:ss"),
 				icon: <Calendar className="h-6 w-6 text-red-400" />,
-				iconBg: "bg-red-900/30",
 			},
 			{
 				title: "Times played",
 				description: "How often the map was played",
 				value: timesPlayed,
 				icon: <Clock className="h-6 w-6 text-green-400" />,
-				iconBg: "bg-green-900/30",
 			},
 			{
 				title: "Total Rounds",
 				description: "Amount of rounds played",
 				value: totalrounds,
 				icon: <Users className="h-6 w-6 text-amber-400" />,
-				iconBg: "bg-amber-900/30",
 			},
 			{
 				title: "Most Common Winner",
 				description: "Which role has the most wins on this map",
 				value: mostCommonWinner,
 				icon: <Award className="h-6 w-6 text-blue-400" />,
-				iconBg: "bg-blue-900/30",
 			},
 		],
 		[firstPlayed, timesPlayed, totalrounds, mostCommonWinner],

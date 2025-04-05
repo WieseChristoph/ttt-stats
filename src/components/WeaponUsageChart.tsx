@@ -25,9 +25,7 @@ const colors = [
 
 const noResultsPlugin = {
 	id: "noResults",
-	afterDraw: (
-		chart: Chart<"bar", (number | [number, number] | null)[], unknown>,
-	) => {
+	afterDraw: (chart: Chart<"bar", (number | [number, number] | null)[], unknown>) => {
 		const { datasets } = chart.data;
 		let hasData = false;
 

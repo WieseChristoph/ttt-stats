@@ -2,9 +2,7 @@
 
 import type { SteamResponse, SteamUser } from "@/types/Steam";
 
-export async function getSteamDataByIds(
-	steamIds: string[],
-): Promise<SteamUser[]> {
+export async function getSteamDataByIds(steamIds: string[]): Promise<SteamUser[]> {
 	if (steamIds.length <= 0) return [];
 
 	if (!process.env.STEAM_API_KEY) {
@@ -18,9 +16,7 @@ export async function getSteamDataByIds(
 	);
 
 	if (!result.ok) {
-		console.error(
-			`Failed to fetch steam data: ${result.status} ${result.statusText}`,
-		);
+		console.error(`Failed to fetch steam data: ${result.status} ${result.statusText}`);
 		return [];
 	}
 

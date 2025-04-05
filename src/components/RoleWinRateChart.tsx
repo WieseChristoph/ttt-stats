@@ -82,8 +82,7 @@ export function RoleWinRateChart() {
 						titleColor: "#e4e4e7",
 						bodyColor: "#e4e4e7",
 						callbacks: {
-							label: (context) =>
-								`${context.dataset.label}: ${context.parsed.y}%`,
+							label: (context) => `${context.dataset.label}: ${context.parsed.y}%`,
 						},
 					},
 				},

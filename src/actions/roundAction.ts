@@ -2,10 +2,7 @@
 
 import { db } from "@/db/drizzle";
 import { death, insertDeathSchema } from "@/db/schema/death";
-import {
-	insertPlayerRecordSchema,
-	playerRecord,
-} from "@/db/schema/playerRecord";
+import { insertPlayerRecordSchema, playerRecord } from "@/db/schema/playerRecord";
 import { insertRoundSchema, round } from "@/db/schema/round";
 import type { ApiRound } from "@/types/api/Round";
 import { and, count, eq, gte, lte } from "drizzle-orm";
@@ -15,10 +12,7 @@ export const addRound = async (data: ApiRound) => {
 	await db.transaction(async (tx) => {
 		const parsedRound = insertRoundSchema.parse(data);
 
-		const insertedRoundIds: { id: number }[] = await tx
-			.insert(round)
-			.values(parsedRound)
-			.returning({ id: round.id });
+		const insertedRoundIds: { id: number }[] = await tx.insert(round).values(parsedRound).returning({ id: round.id });
 
 		const roundId = insertedRoundIds[0].id;
 
@@ -59,21 +53,12 @@ export const getRoundCount = async (fromDate: Date, toDate: Date) => {
 	const result = await db
 		.select({ count: count(round.id) })
 		.from(round)
-		.where(
-			and(
-				gte(round.startedAt, fromDate.toDateString()),
-				lte(round.startedAt, toDate.toDateString()),
-			),
-		);
+		.where(and(gte(round.startedAt, fromDate.toDateString()), lte(round.startedAt, toDate.toDateString())));
 
 	return result.pop()?.count;
 };
 
-export const getRoundWinsByTeam = async (
-	team: string,
-	fromDate: Date,
-	toDate: Date,
-) => {
+export const getRoundWinsByTeam = async (team: string, fromDate: Date, toDate: Date) => {
 	const result = await db
 		.select({ count: count(round.id) })
 		.from(round)

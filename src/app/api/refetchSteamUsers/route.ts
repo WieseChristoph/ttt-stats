@@ -11,8 +11,7 @@ export async function POST(request: NextRequest) {
 	try {
 		await loadSteamUsersByIds(steamIds);
 	} catch (error) {
-		if (error instanceof ZodError)
-			return new Response(JSON.stringify(error.errors), { status: 400 });
+		if (error instanceof ZodError) return new Response(JSON.stringify(error.errors), { status: 400 });
 
 		return new Response(JSON.stringify(error), { status: 500 });
 	}

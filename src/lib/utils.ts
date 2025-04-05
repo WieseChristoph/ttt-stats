@@ -7,10 +7,10 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
-export function buildConflictUpdateColumns<
-	T extends PgTable,
-	Q extends keyof T["_"]["columns"],
->(table: T, columns: Q[]) {
+export function buildConflictUpdateColumns<T extends PgTable, Q extends keyof T["_"]["columns"]>(
+	table: T,
+	columns: Q[],
+) {
 	const cls = getTableColumns(table);
 
 	return columns.reduce(

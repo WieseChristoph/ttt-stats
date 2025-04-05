@@ -1,6 +1,4 @@
-export default async function Round({
-	params,
-}: { params: Promise<{ mapName: string; roundId: number }> }) {
+export default async function Round({ params }: { params: Promise<{ mapName: string; roundId: number }> }) {
 	const { mapName, roundId } = await params;
 
 	return (

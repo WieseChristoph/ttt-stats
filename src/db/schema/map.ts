@@ -1,8 +1,4 @@
-import {
-	type InferInsertModel,
-	type InferSelectModel,
-	relations,
-} from "drizzle-orm";
+import { type InferInsertModel, type InferSelectModel, relations } from "drizzle-orm";
 import { pgTable, serial, timestamp, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { type Round, round } from "./round";
