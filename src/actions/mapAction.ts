@@ -35,19 +35,34 @@ export const getMapCount = async (fromDate: Date, toDate: Date) => {
 	return result.pop()?.count;
 };
 
-export const getGroupedMaps = async (sortOption: SortOption, searchQuery: string) => {
+export const getGroupedMaps = async (sortOption: SortOption, searchQuery: string, limit: number, offset: number) => {
+	const getOrderBySortOption = (sortOption: SortOption): SQL => {
+		switch (sortOption) {
+			case SortOption.Recent:
+				return desc(max(round.endedAt).mapWith(Date));
+			case SortOption.Alpabetical:
+				return asc(map.name);
+			case SortOption.MostPlayed:
+				return sql`${desc(countDistinct(map.id))}, ${asc(map.name)}`;
+			case SortOption.Duration:
+				return desc(avg(sql`EXTRACT(EPOCH FROM (${round.endedAt} - ${round.startedAt}))`).mapWith(Number));
+		}
+	};
+
 	const results = await db
 		.select({
 			name: map.name,
 			lastPlayed: max(round.startedAt),
-			timesPlayed: count(map.id),
+			timesPlayed: countDistinct(map.id),
 			avgRoundDuration: avg(sql`EXTRACT(EPOCH FROM (${round.endedAt} - ${round.startedAt}))`).mapWith(Number),
 		})
 		.from(map)
 		.where(searchQuery ? like(map.name, `%${searchQuery.toLowerCase()}%`) : undefined)
 		.innerJoin(round, eq(map.id, round.mapId))
 		.groupBy(map.name)
-		.orderBy(getOrderBySortOption(sortOption));
+		.orderBy(getOrderBySortOption(sortOption))
+		.limit(limit)
+		.offset(offset);
 
 	return results;
 };
@@ -91,21 +106,12 @@ export const getMostCommonWinner = async (mapName: string) => {
 	};
 };
 
-function getOrderBySortOption(sortOption: SortOption): SQL {
-	switch (sortOption) {
-		case SortOption.Recent:
-			return desc(max(round.endedAt).mapWith(Date));
-		case SortOption.Alpabetical:
-			return asc(map.name);
-		case SortOption.MostPlayed:
-			return desc(count(map.id));
-		case SortOption.Duration:
-			return desc(avg(sql`EXTRACT(EPOCH FROM (${round.endedAt} - ${round.startedAt}))`).mapWith(Number));
-	}
-}
-
-export const getMapSessionsByName = async (mapName: string) => {
-	const results = await db.select({ id: map.id }).from(map).innerJoin(round, eq(map.id, round.mapId));
+export const getMapSessionsByName = async (mapName: string, limit: number, offset: number) => {
+	const results = await db
+		.select({ id: map.id })
+		.from(map)
+		.innerJoin(round, eq(map.id, round.mapId))
+		.where(eq(map.name, mapName));
 
 	return db.query.map.findMany({
 		with: {
@@ -125,5 +131,8 @@ export const getMapSessionsByName = async (mapName: string) => {
 				map.id,
 				results.map((result) => result.id),
 			),
+		orderBy: (map, { desc }) => desc(map.startedAt),
+		limit: limit,
+		offset: offset,
 	});
 };

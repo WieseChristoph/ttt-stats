@@ -4,21 +4,50 @@ import { getMapSessionsByName } from "@/actions/mapAction";
 import { MapSingleValueStats } from "@/components/MapSingleValueStats";
 import { SessionOverview } from "@/components/SessionOverview";
 import type { MapWithRounds } from "@/db/schema";
+import { Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useInView } from "react-intersection-observer";
+
+const SESSION_PAGE_SIZE = 5;
 
 export default function MapInfo() {
 	const { mapName } = useParams<{ mapName: string }>();
 
-	const [openSessions, setOpenSessions] = useState<number[]>([]);
 	const [sessions, setSessions] = useState<MapWithRounds[]>([]);
+	const [openSessions, setOpenSessions] = useState<number[]>([]);
+
+	const [page, setPage] = useState<number>(1);
+	const [hasMore, setHasMore] = useState<boolean>(true);
+	const [isLoading, setIsLoading] = useState(false);
+	const { ref, inView } = useInView();
+
+	const loadMoreSessions = useCallback(async () => {
+		if (!hasMore || isLoading) return;
+
+		setIsLoading(true);
+		try {
+			const results = await getMapSessionsByName(mapName, SESSION_PAGE_SIZE, (page - 1) * SESSION_PAGE_SIZE);
+
+			setSessions((prev) => [...prev, ...results]);
+			setOpenSessions((prev) => (prev.length === 0 ? [results[0].id] : prev));
+
+			setHasMore(results.length === SESSION_PAGE_SIZE);
+			if (results.length === SESSION_PAGE_SIZE) {
+				setPage((prev) => prev + 1);
+			}
+		} catch (error) {
+			console.error("Failed to load sessions:", error);
+		} finally {
+			setIsLoading(false);
+		}
+	}, [mapName, hasMore, isLoading, page]);
 
 	useEffect(() => {
-		getMapSessionsByName(mapName).then((results) => {
-			setSessions(results);
-			setOpenSessions([results[0].id]);
-		});
-	}, [mapName]);
+		if (inView && hasMore && !isLoading) {
+			loadMoreSessions();
+		}
+	}, [inView, hasMore, isLoading, loadMoreSessions]);
 
 	const toggleSession = (sessionId: number) => {
 		setOpenSessions((prev) =>
@@ -43,6 +72,16 @@ export default function MapInfo() {
 						onToggleSession={toggleSession}
 					/>
 				))}
+				{isLoading && (
+					<div className="flex justify-center pb-4">
+						<Loader2 className="animate-spin" />
+					</div>
+				)}
+				{!isLoading && hasMore && (
+					<div ref={ref} className="flex justify-center pb-4">
+						<Loader2 className="animate-spin" />
+					</div>
+				)}
 			</div>
 		</>
 	);
