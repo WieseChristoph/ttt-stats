@@ -49,7 +49,7 @@ export function SessionOverview({ session, openSessions, onToggleSession }: Sess
 					</div>
 					<div>
 						<h4 className="text-lg font-medium text-zinc-100">
-							{dayjs(session.startedAt).format("DD/MM/YYYY")} at {dayjs(session.startedAt).format("hh:mm")}
+							{dayjs(session.startedAt).format("DD/MM/YYYY")} at {dayjs(session.startedAt).format("HH:mm")}
 						</h4>
 						<p className="text-sm text-zinc-400">
 							{session.rounds.length} rounds •{" "}
