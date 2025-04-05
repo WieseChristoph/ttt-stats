@@ -1,7 +1,7 @@
 import { type InferInsertModel, type InferSelectModel, relations } from "drizzle-orm";
 import { pgTable, serial, timestamp, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { type Round, round } from "./round";
+import { type RoundWithPlayerRecords, round } from "./round";
 
 export const map = pgTable("map", {
 	id: serial("id").primaryKey(),
@@ -17,7 +17,7 @@ export type Map = InferSelectModel<typeof map>;
 
 export type NewMap = InferInsertModel<typeof map>;
 
-export type MapWithRounds = Map & { rounds: Round[] };
+export type MapWithRounds = Map & { rounds: RoundWithPlayerRecords[] };
 
 export const selectMapSchema = createSelectSchema(map);
 

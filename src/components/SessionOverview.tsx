@@ -5,11 +5,13 @@ import { cFirst } from "@/lib/utils";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { Calendar, ChevronDown, ChevronUp } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
 import { Badge } from "./ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 dayjs.extend(duration);
 
@@ -49,7 +51,19 @@ export function SessionOverview({ session, openSessions, onToggleSession }: Sess
 						<h4 className="text-lg font-medium text-zinc-100">
 							{dayjs(session.startedAt).format("DD/MM/YYYY")} at {dayjs(session.startedAt).format("hh:mm")}
 						</h4>
-						<p className="text-sm text-zinc-400">{session.rounds.length} rounds • [duration] total</p>
+						<p className="text-sm text-zinc-400">
+							{session.rounds.length} rounds •{" "}
+							{dayjs
+								.duration(
+									dayjs(session.rounds[session.rounds.length - 1].endedAt).diff(
+										dayjs(session.rounds[0].startedAt),
+										"seconds",
+									),
+									"seconds",
+								)
+								.format("m[m] s[s]")}{" "}
+							total • {Math.max(...session.rounds.map((round) => round.playerRecords.length))} players
+						</p>
 					</div>
 				</div>
 				<div className="flex items-center gap-3">
@@ -69,39 +83,62 @@ export function SessionOverview({ session, openSessions, onToggleSession }: Sess
 								<TableHead className="text-zinc-500">Round #</TableHead>
 								<TableHead className="text-zinc-500">Duration</TableHead>
 								<TableHead className="text-zinc-500">Winner</TableHead>
+								<TableHead className="text-zinc-500">Players</TableHead>
 								<TableHead className="text-zinc-500 text-right">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{session.rounds
-								.sort((roundA, roundB) => dayjs(roundA.startedAt).diff(roundB.startedAt))
-								.map((round, index) => (
-									<TableRow key={round.id} className="border-zinc-700 hover:bg-zinc-750">
-										<TableCell className="font-medium">Round {index + 1}</TableCell>
-										<TableCell>
-											{dayjs
-												.duration(dayjs(round.endedAt).diff(dayjs(round.startedAt), "seconds"), "seconds")
-												.format("m[m] s[s]")}
-										</TableCell>
-										<TableCell>
-											<Badge
-												style={{
-													backgroundColor: getTeamColor(round.winningTeam as Team),
-												}}
-											>
-												{cFirst(round.winningTeam)}
-											</Badge>
-										</TableCell>
-										<TableCell className="text-right">
-											<Link
-												href={`/maps/${session.name}/rounds/${round.id}`}
-												className="text-sm text-blue-400 hover:underline"
-											>
-												View Details
-											</Link>
-										</TableCell>
-									</TableRow>
-								))}
+							{session.rounds.map((round, index) => (
+								<TableRow key={round.id} className="border-zinc-700 hover:bg-zinc-750">
+									<TableCell className="font-medium">Round {index + 1}</TableCell>
+									<TableCell>
+										{dayjs
+											.duration(dayjs(round.endedAt).diff(dayjs(round.startedAt), "seconds"), "seconds")
+											.format("m[m] s[s]")}
+									</TableCell>
+									<TableCell>
+										<Badge
+											style={{
+												backgroundColor: getTeamColor(round.winningTeam as Team),
+											}}
+										>
+											{cFirst(round.winningTeam)}
+										</Badge>
+									</TableCell>
+									<TableCell className="text-right flex gap-1">
+										{round.playerRecords.map((playerRecord) => (
+											<TooltipProvider key={playerRecord.id}>
+												<Tooltip>
+													<TooltipTrigger asChild>
+														<Link href={`/players/${playerRecord.steamId}`}>
+															<Image
+																key={playerRecord.id}
+																src={playerRecord.steamUser.avatar ?? ""}
+																alt={playerRecord.steamUser.username}
+																width={24}
+																height={24}
+																className="rounded-xl border-2"
+																style={{ borderColor: getTeamColor(playerRecord.teamName as Team) }}
+															/>
+														</Link>
+													</TooltipTrigger>
+													<TooltipContent>
+														<p>{`${playerRecord.steamUser.username} (${cFirst(playerRecord.teamName).slice(0, playerRecord.teamName.length - 1)})`}</p>
+													</TooltipContent>
+												</Tooltip>
+											</TooltipProvider>
+										))}
+									</TableCell>
+									<TableCell className="text-right">
+										<Link
+											href={`/maps/${session.name}/rounds/${round.id}`}
+											className="text-sm text-blue-400 hover:underline"
+										>
+											View Details
+										</Link>
+									</TableCell>
+								</TableRow>
+							))}
 						</TableBody>
 					</Table>
 				</div>

@@ -1,6 +1,7 @@
-import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { type InferInsertModel, type InferSelectModel, relations } from "drizzle-orm";
 import { pgTable, serial, uniqueIndex, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { playerRecord } from "./playerRecord";
 
 export const steamUser = pgTable(
 	"steam_user",
@@ -15,6 +16,13 @@ export const steamUser = pgTable(
 	},
 	(table) => [uniqueIndex("steamIdUniqueIndex").on(table.steamId)],
 );
+
+export const steamUserRelations = relations(steamUser, ({ one, many }) => ({
+	playerRecord: one(playerRecord, {
+		fields: [steamUser.steamId],
+		references: [playerRecord.steamId],
+	}),
+}));
 
 export type SteamUser = InferSelectModel<typeof steamUser>;
 

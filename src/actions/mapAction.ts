@@ -109,7 +109,16 @@ export const getMapSessionsByName = async (mapName: string) => {
 
 	return db.query.map.findMany({
 		with: {
-			rounds: true,
+			rounds: {
+				orderBy: (rounds, { asc }) => [asc(rounds.startedAt)],
+				with: {
+					playerRecords: {
+						with: {
+							steamUser: true,
+						},
+					},
+				},
+			},
 		},
 		where: (map, { inArray }) =>
 			inArray(
