@@ -30,7 +30,7 @@ export function KillFeed({ round }: KillFeedProps) {
 
 		console.log(deaths);
 
-		return deaths.sort((deathA, deathB) => dayjs(deathB.timeOfDeath).diff(dayjs(deathA.timeOfDeath)));
+		return deaths.sort((deathA, deathB) => dayjs(deathA.timeOfDeath).diff(dayjs(deathB.timeOfDeath)));
 	}, [round]);
 
 	return (
@@ -53,7 +53,7 @@ export function KillFeed({ round }: KillFeedProps) {
 						{kill.timeOfDeath && (
 							<span className="text-xs text-zinc-400">
 								{dayjs
-									.duration(dayjs(round.startedAt).diff(kill.timeOfDeath, "seconds"), "seconds")
+									.duration(dayjs(kill.timeOfDeath).diff(round.startedAt, "seconds"), "seconds")
 									.format("m[m] s[s]")}
 							</span>
 						)}
