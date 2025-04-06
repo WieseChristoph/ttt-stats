@@ -1,13 +1,13 @@
 import type { RoundWithRelations } from "@/db/schema";
 import type { Team } from "@/enums/Team";
 import { getTeamColor } from "@/lib/teamMapper";
+import { cFirst } from "@/lib/utils";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
-import { useMemo } from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import Image from "next/image";
-import { cFirst } from "@/lib/utils";
+import { useMemo } from "react";
 import { Badge } from "./ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 
 dayjs.extend(duration);
 

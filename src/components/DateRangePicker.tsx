@@ -24,7 +24,7 @@ export function DateRangePicker({ dateRange, onSelect, className }: DateRangePic
 						id="date"
 						variant={"outline"}
 						className={cn(
-							"w-[300px] justify-start text-left font-normal bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700",
+							"w-[300px] justify-start text-left font-normal bg-zinc-800/50 border-zinc-700",
 							!dateRange && "text-muted-foreground",
 						)}
 					>
