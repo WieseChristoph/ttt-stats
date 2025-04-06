@@ -28,8 +28,6 @@ export function KillFeed({ round }: KillFeedProps) {
 			}
 		}
 
-		console.log(deaths);
-
 		return deaths.sort((deathA, deathB) => dayjs(deathA.timeOfDeath).diff(dayjs(deathB.timeOfDeath)));
 	}, [round]);
 

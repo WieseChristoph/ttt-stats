@@ -80,11 +80,11 @@ export function SessionOverview({ session, openSessions, onToggleSession }: Sess
 					<Table>
 						<TableHeader>
 							<TableRow className="border-zinc-700 hover:bg-zinc-750">
-								<TableHead className="text-zinc-500">Round #</TableHead>
-								<TableHead className="text-zinc-500">Duration</TableHead>
-								<TableHead className="text-zinc-500">Winner</TableHead>
-								<TableHead className="text-zinc-500">Players</TableHead>
-								<TableHead className="text-zinc-500 text-right">Actions</TableHead>
+								<TableHead className="text-zinc-400">Round #</TableHead>
+								<TableHead className="text-zinc-400">Duration</TableHead>
+								<TableHead className="text-zinc-400">Winner</TableHead>
+								<TableHead className="text-zinc-400">Players</TableHead>
+								<TableHead className="text-zinc-400 text-right">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>

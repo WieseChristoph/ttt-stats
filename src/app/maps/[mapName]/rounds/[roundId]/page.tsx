@@ -2,10 +2,11 @@
 
 import { getRound } from "@/actions/roundAction";
 import { KillFeed } from "@/components/KillFeed";
+import { PlayerStats } from "@/components/PlayerStats";
 import { RoundSingleValueStats } from "@/components/RoundSingleValueStats";
 import { StatChartCard } from "@/components/StatChartCard";
 import type { RoundWithRelations } from "@/db/schema";
-import { Loader2, Skull } from "lucide-react";
+import { Loader2, Skull, Users } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -41,8 +42,12 @@ export default function Round() {
 				>
 					<KillFeed round={round} />
 				</StatChartCard>
-				<StatChartCard title="Dummy" description="Dummy" icon={<Skull className="h-6 w-6 text-red-600" />}>
-					<div>Dummy</div>
+				<StatChartCard
+					title="Player Performance"
+					description="Stats of all players"
+					icon={<Users className="h-6 w-6 text-sky-600" />}
+				>
+					<PlayerStats round={round} />
 				</StatChartCard>
 			</div>
 		</>
