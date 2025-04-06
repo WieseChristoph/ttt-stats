@@ -12,10 +12,11 @@ export interface MapCardProps {
 	name: string | null;
 	lastPlayed: string | null;
 	timesPlayed: number;
+	roundsPlayed: number;
 	avgRoundDuration: number;
 }
 
-export function MapCard({ name, lastPlayed, timesPlayed, avgRoundDuration }: MapCardProps) {
+export function MapCard({ name, lastPlayed, timesPlayed, roundsPlayed, avgRoundDuration }: MapCardProps) {
 	return (
 		<Link href={`/maps/${name}`} className="block group">
 			<Card className="h-full border-zinc-700 bg-zinc-800/50 overflow-hidden transition-all duration-100 group-hover:scale-[1.02] group-hover:shadow-lg group-hover:shadow-zinc-900/50">
@@ -34,7 +35,8 @@ export function MapCard({ name, lastPlayed, timesPlayed, avgRoundDuration }: Map
 						<div className="flex items-center gap-1.5">
 							<BarChart2 className="h-4 w-4 text-zinc-400" />
 							<span>
-								Played {timesPlayed} {timesPlayed > 1 ? "times" : "time"}
+								Played {timesPlayed} {timesPlayed > 1 ? "times" : "time"} ({roundsPlayed}{" "}
+								{roundsPlayed > 1 ? "rounds" : "round"})
 							</span>
 						</div>
 						<div className="flex items-center gap-1.5">

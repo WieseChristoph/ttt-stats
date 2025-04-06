@@ -1,4 +1,4 @@
-import type { MapWithRounds } from "@/db/schema";
+import type { MapWithRelations } from "@/db/schema";
 import type { Team } from "@/enums/Team";
 import { getTeamColor } from "@/lib/teamMapper";
 import { cFirst } from "@/lib/utils";
@@ -16,7 +16,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/t
 dayjs.extend(duration);
 
 interface SessionOverviewProps {
-	session: MapWithRounds;
+	session: MapWithRelations;
 	openSessions: number[];
 	onToggleSession: (sessionId: number) => void;
 }

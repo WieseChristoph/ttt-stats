@@ -1,7 +1,7 @@
 import { type InferInsertModel, type InferSelectModel, relations } from "drizzle-orm";
 import { integer, pgTable, serial, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { death } from "./death";
+import { type DeathWithRelations, death } from "./death";
 import { round } from "./round";
 import { type SteamUser, steamUser } from "./steamUser";
 
@@ -30,7 +30,7 @@ export type PlayerRecord = InferSelectModel<typeof playerRecord>;
 
 export type NewPlayerRecord = InferInsertModel<typeof playerRecord>;
 
-export type PlayerRecordWithSteamUser = PlayerRecord & { steamUser: SteamUser };
+export type PlayerRecordWithRelations = PlayerRecord & { steamUser: SteamUser; deaths: DeathWithRelations[] };
 
 export const selectPlayerRecordSchema = createSelectSchema(playerRecord);
 

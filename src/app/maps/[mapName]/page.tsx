@@ -3,7 +3,7 @@
 import { getMapSessionsByName } from "@/actions/mapAction";
 import { MapSingleValueStats } from "@/components/MapSingleValueStats";
 import { SessionOverview } from "@/components/SessionOverview";
-import type { MapWithRounds } from "@/db/schema";
+import type { MapWithRelations } from "@/db/schema";
 import { Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -14,7 +14,7 @@ const SESSION_PAGE_SIZE = 5;
 export default function MapInfo() {
 	const { mapName } = useParams<{ mapName: string }>();
 
-	const [sessions, setSessions] = useState<MapWithRounds[]>([]);
+	const [sessions, setSessions] = useState<MapWithRelations[]>([]);
 	const [openSessions, setOpenSessions] = useState<number[]>([]);
 
 	const [page, setPage] = useState<number>(1);

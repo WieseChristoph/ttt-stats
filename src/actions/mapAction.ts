@@ -43,7 +43,7 @@ export const getGroupedMaps = async (sortOption: SortOption, searchQuery: string
 			case SortOption.Alpabetical:
 				return asc(map.name);
 			case SortOption.MostPlayed:
-				return sql`${desc(countDistinct(map.id))}, ${asc(map.name)}`;
+				return sql`${desc(countDistinct(map.id))}, ${desc(count(round.id))}, ${asc(map.name)}`;
 			case SortOption.Duration:
 				return desc(avg(sql`EXTRACT(EPOCH FROM (${round.endedAt} - ${round.startedAt}))`).mapWith(Number));
 		}
@@ -54,6 +54,7 @@ export const getGroupedMaps = async (sortOption: SortOption, searchQuery: string
 			name: map.name,
 			lastPlayed: max(round.startedAt),
 			timesPlayed: countDistinct(map.id),
+			roundsPlayed: count(round.id),
 			avgRoundDuration: avg(sql`EXTRACT(EPOCH FROM (${round.endedAt} - ${round.startedAt}))`).mapWith(Number),
 		})
 		.from(map)
@@ -120,6 +121,11 @@ export const getMapSessionsByName = async (mapName: string, limit: number, offse
 				with: {
 					playerRecords: {
 						with: {
+							deaths: {
+								with: {
+									attackerSteamUser: true,
+								},
+							},
 							steamUser: true,
 						},
 					},

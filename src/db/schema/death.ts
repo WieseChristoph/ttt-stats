@@ -2,6 +2,7 @@ import { type InferInsertModel, type InferSelectModel, relations } from "drizzle
 import { boolean, integer, pgTable, serial, timestamp, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { playerRecord } from "./playerRecord";
+import { type SteamUser, steamUser } from "./steamUser";
 
 export const death = pgTable("death", {
 	id: serial("id").primaryKey(),
@@ -20,11 +21,17 @@ export const deathRelations = relations(death, ({ one }) => ({
 		fields: [death.playerRecordId],
 		references: [playerRecord.id],
 	}),
+	attackerSteamUser: one(steamUser, {
+		fields: [death.attackerSteamId],
+		references: [steamUser.steamId],
+	}),
 }));
 
 export type Death = InferSelectModel<typeof death>;
 
 export type NewDeath = InferInsertModel<typeof death>;
+
+export type DeathWithRelations = Death & { attackerSteamUser: SteamUser };
 
 export const selectDeathSchema = createSelectSchema(death);
 

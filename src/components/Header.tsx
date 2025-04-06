@@ -41,7 +41,7 @@ export function Header() {
 						<Link
 							key={navItem.url}
 							href={navItem.url}
-							className={`text-zinc-100 font-medium pb-1 border-black/100 border-b-2 hover:border-red-500/50 ${pathname === navItem.url && "border-red-500"}`}
+							className={`text-zinc-100 font-medium pb-1 border-transparent border-b-2 hover:border-red-500/50 ${pathname === navItem.url && "border-red-500"}`}
 						>
 							{navItem.name}
 						</Link>

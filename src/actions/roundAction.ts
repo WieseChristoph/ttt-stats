@@ -72,3 +72,21 @@ export const getRoundWinsByTeam = async (team: string, fromDate: Date, toDate: D
 
 	return result.pop()?.count;
 };
+
+export const getRound = async (roundId: number) => {
+	return db.query.round.findFirst({
+		where: (round, { eq }) => eq(round.id, roundId),
+		with: {
+			playerRecords: {
+				with: {
+					deaths: {
+						with: {
+							attackerSteamUser: true,
+						},
+					},
+					steamUser: true,
+				},
+			},
+		},
+	});
+};
