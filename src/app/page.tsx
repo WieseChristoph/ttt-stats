@@ -31,7 +31,7 @@ export default function Home() {
 					description="Win percentage by role over time"
 					icon={<Crown className="h-6 w-6 text-amber-400" />}
 				>
-					<RoleWinRateChart />
+					<RoleWinRateChart dateRange={dateRange} />
 				</StatChartCard>
 				<StatChartCard
 					title="Weapon Usage"

@@ -5,7 +5,7 @@ import { death, insertDeathSchema } from "@/db/schema/death";
 import { insertPlayerRecordSchema, playerRecord } from "@/db/schema/playerRecord";
 import { insertRoundSchema, round } from "@/db/schema/round";
 import type { ApiRound } from "@/types/api/Round";
-import { and, count, eq, gte, lte } from "drizzle-orm";
+import { and, count, eq, gte, lte, sql } from "drizzle-orm";
 import { z } from "zod";
 
 export const addRound = async (data: ApiRound) => {
@@ -89,4 +89,31 @@ export const getRound = async (roundId: number) => {
 			},
 		},
 	});
+};
+
+export const getTeamWinsByDate = async (fromDate: Date, toDate: Date) => {
+	const totalGamesPerDate = db
+		.select({
+			date: sql`DATE(${round.startedAt})`.as("date"),
+			totalGames: sql`COUNT(*)`.as("totalGames"),
+		})
+		.from(round)
+		.where(sql`${round.startedAt} >= ${fromDate} AND ${round.startedAt} <= ${toDate}`)
+		.groupBy(sql`DATE(${round.startedAt})`)
+		.as("daily_totals");
+
+	const result = await db
+		.with(totalGamesPerDate)
+		.select({
+			date: sql`DATE(${round.startedAt})`.mapWith(String),
+			team: round.winningTeam,
+			wins: count(round.id),
+			winRate: sql`COUNT(*) * 1.0 / ${totalGamesPerDate.totalGames}`.mapWith(Number),
+		})
+		.from(round)
+		.innerJoin(totalGamesPerDate, sql`DATE(${round.startedAt}) = ${totalGamesPerDate.date}`)
+		.where(sql`${round.startedAt} >= ${fromDate} AND ${round.startedAt} <= ${toDate}`)
+		.groupBy(sql`DATE(${round.startedAt}), ${round.winningTeam}, ${totalGamesPerDate.totalGames}`);
+
+	return result;
 };

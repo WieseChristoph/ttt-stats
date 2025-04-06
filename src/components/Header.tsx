@@ -16,10 +16,6 @@ export function Header() {
 			name: "Maps",
 			url: "/maps",
 		},
-		{
-			name: "Players",
-			url: "/players",
-		},
 	];
 
 	return (
