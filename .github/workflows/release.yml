@@ -40,8 +40,8 @@ jobs:
                   username: ${{ github.actor }}
                   password: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Extract Docker metadata
-              id: meta
+            - name: Extract application image metadata
+              id: app-meta
               uses: docker/metadata-action@v5
               with:
                   images: ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}
@@ -52,17 +52,43 @@ jobs:
                       type=semver,pattern={{major}}.{{minor}}
                       type=semver,pattern={{major}},enable=${{ !startsWith(github.ref_name, 'v0.') }}
 
-            - name: Build and push Docker image
-              id: build
+            - name: Extract migration image metadata
+              id: migrator-meta
+              uses: docker/metadata-action@v5
+              with:
+                  images: ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}
+                  flavor: |
+                      latest=false
+                  tags: |
+                      type=semver,pattern={{version}},suffix=-migrator
+                      type=semver,pattern={{major}}.{{minor}},suffix=-migrator
+                      type=raw,value=latest-migrator,enable=${{ !contains(github.ref_name, '-') }}
+
+            - name: Build and push application image
+              id: app-build
               uses: docker/build-push-action@v6
               with:
                   context: .
                   file: ./Dockerfile
+                  target: runner
                   push: true
-                  tags: ${{ steps.meta.outputs.tags }}
-                  labels: ${{ steps.meta.outputs.labels }}
-                  cache-from: type=gha
-                  cache-to: type=gha,mode=max
+                  tags: ${{ steps.app-meta.outputs.tags }}
+                  labels: ${{ steps.app-meta.outputs.labels }}
+                  cache-from: type=gha,scope=runner
+                  cache-to: type=gha,mode=max,scope=runner
+
+            - name: Build and push migration image
+              id: migrator-build
+              uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  file: ./Dockerfile
+                  target: migrator
+                  push: true
+                  tags: ${{ steps.migrator-meta.outputs.tags }}
+                  labels: ${{ steps.migrator-meta.outputs.labels }}
+                  cache-from: type=gha,scope=migrator
+                  cache-to: type=gha,mode=max,scope=migrator
 
             - name: Create GitHub release
               uses: softprops/action-gh-release@v2
@@ -70,10 +96,15 @@ jobs:
                   tag_name: ${{ github.ref_name }}
                   generate_release_notes: true
                   body: |
-                      Docker image: `${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.meta.outputs.version }}`
+                      Application image: `${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.app-meta.outputs.version }}`
+
+                      Migration image: `${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.migrator-meta.outputs.version }}`
 
                       ```sh
-                      docker pull ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.meta.outputs.version }}
+                      docker pull ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.app-meta.outputs.version }}
+                      docker pull ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ steps.migrator-meta.outputs.version }}
                       ```
 
-                      Image digest: `${{ steps.build.outputs.digest }}`
+                      Application digest: `${{ steps.app-build.outputs.digest }}`
+
+                      Migration digest: `${{ steps.migrator-build.outputs.digest }}`

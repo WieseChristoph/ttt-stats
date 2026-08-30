@@ -1,5 +1,6 @@
 services:
     app:
+        image: ghcr.io/wiesechristoph/ttt-stats:${TTT_STATS_VERSION:-latest}
         build:
             context: .
             dockerfile: Dockerfile
@@ -44,6 +45,7 @@ services:
         volumes:
             - redis_data:/data
     migrate:
+        image: ghcr.io/wiesechristoph/ttt-stats:${TTT_STATS_VERSION:-latest}-migrator
         build:
             context: .
             dockerfile: Dockerfile

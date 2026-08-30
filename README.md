@@ -30,15 +30,29 @@ pnpm build
 
 ## Docker deployment
 
-The production Compose stack includes the Next.js app, PostgreSQL, Redis, and a one-shot migration container:
+Each GitHub release publishes two images:
+
+- `ghcr.io/wiesechristoph/ttt-stats:<version>` contains the Next.js application.
+- `ghcr.io/wiesechristoph/ttt-stats:<version>-migrator` contains Drizzle and the matching migrations.
+
+The production Compose stack runs the migrator before starting the application. To deploy the published images:
 
 ```bash
 cp .env.example .env
-# Set secure database and ingest credentials, plus a Steam Web API key.
-docker compose up -d --build
+# Set secure credentials, a Steam Web API key, and TTT_STATS_VERSION in .env.
+docker compose pull
+docker compose up -d --no-build
 ```
 
-Database migrations run before the app starts. `APP_PORT` controls the exposed port and defaults to `3000`. Put the app behind an HTTPS reverse proxy for a public deployment.
+Use a concrete version such as `TTT_STATS_VERSION=0.0.2` for reproducible deployments, or `latest` to follow stable releases. To build both images from the checked-out source instead, run `docker compose up -d --build`.
+
+The migration image can also be run independently through Compose:
+
+```bash
+docker compose run --rm migrate
+```
+
+Compose attaches it to the database network and supplies the `db` service hostname. `APP_PORT` controls the exposed website port and defaults to `3000`. Put the app behind an HTTPS reverse proxy for a public deployment.
 
 Configure the [TTT2 Stats addon](https://github.com/WieseChristoph/ttt2-stats-addon) with this deployment URL and the same `STATS_INGEST_TOKEN`. For the loading screen, use:
 
