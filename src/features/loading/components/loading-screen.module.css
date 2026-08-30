@@ -1,0 +1,623 @@
+/* Garry's Mod uses CEF 86 for loading pages. Keep essential styles unlayered and Chrome 86 compatible. */
+
+.screen,
+.emptyScreen {
+    position: fixed;
+    z-index: 100;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 100vh;
+    overflow: hidden;
+    color: #f1f5f9;
+    background: #080b11;
+}
+
+.screenBackground {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    pointer-events: none;
+    background-image:
+        radial-gradient(circle at 82% -15%, rgba(139, 92, 246, 0.18), transparent 42rem),
+        radial-gradient(circle at 5% 105%, rgba(255, 102, 117, 0.08), transparent 30rem);
+}
+
+.canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: grid;
+    grid-template-rows: 42px minmax(0, 1fr);
+    gap: 12px;
+    padding: 12px;
+}
+
+.panelGrid {
+    display: grid;
+    min-height: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.header {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-right: 4px;
+    padding-left: 4px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brandImage {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    box-shadow:
+        0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
+.brandName {
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+}
+
+.brandAccent {
+    color: #ff6675;
+}
+
+.connection {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+    color: #90a1b9;
+    font-size: 13px;
+}
+
+.connectionDot {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    background: #00d294;
+    box-shadow: 0 0 12px rgba(74, 222, 128, 0.75);
+}
+
+.truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.connectionDetail {
+    display: none;
+    white-space: nowrap;
+}
+
+.connectionSeparator {
+    color: #45556c;
+}
+
+.emptyScreen {
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    padding: 24px;
+}
+
+.emptyCard {
+    padding: 36px 40px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    background: #121722;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    text-align: center;
+}
+
+.emptyIcon {
+    width: 32px;
+    height: 32px;
+    margin: 0 auto 16px;
+    color: #a685ff;
+}
+
+.emptyTitle {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+}
+
+.emptyText {
+    margin: 8px 0 0;
+    color: #90a1b9;
+    font-size: 14px;
+}
+
+.panel {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    background: rgba(18, 23, 34, 0.95);
+    box-shadow: 0 20px 55px rgba(0, 0, 0, 0.22);
+}
+
+.currentMapPanel {
+    border-color: rgba(166, 133, 255, 0.25);
+    background-image:
+        radial-gradient(circle at 90% 100%, rgba(139, 92, 246, 0.18), transparent 55%),
+        linear-gradient(145deg, rgba(20, 26, 39, 0.98), rgba(18, 23, 34, 0.96));
+}
+
+.panelHeaderRow,
+.lastRoundHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.panelHeaderTitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #a685ff;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.panelHeaderTitle svg {
+    width: 16px;
+    height: 16px;
+}
+
+.badge {
+    padding: 4px 8px;
+    border: 1px solid rgba(166, 133, 255, 0.3);
+    border-radius: 9999px;
+    color: #c4b4ff;
+    background: rgba(166, 133, 255, 0.1);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.metric {
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.metricLabel {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+    color: #62748e;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.metricLabel svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: #a685ff;
+}
+
+.metricValue {
+    display: block;
+    overflow: hidden;
+    color: #f1f5f9;
+    font-size: 24px;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.045em;
+    line-height: 1.333;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.compactMetricValue {
+    font-size: 16px;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+}
+
+.weaponMetricValue {
+    font-size: 20px;
+    letter-spacing: -0.025em;
+}
+
+.avatar,
+.avatarFallback {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow:
+        0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+.avatar {
+    object-fit: cover;
+}
+
+.avatarFallback {
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    color: #c4b4ff;
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 24px;
+    font-weight: 900;
+}
+
+.teamPill {
+    display: inline-flex;
+    width: max-content;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.teamDot,
+.smallTeamDot {
+    width: 7px;
+    height: 7px;
+    flex-shrink: 0;
+    border-radius: 9999px;
+}
+
+.currentMapContent {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    align-items: center;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.currentMapTitle {
+    max-width: 100%;
+    margin: 0;
+    font-size: clamp(2.1rem, 3.6vw, 4.5rem);
+    font-weight: 900;
+    letter-spacing: -0.065em;
+    line-height: 0.88;
+    overflow-wrap: break-word;
+}
+
+.mapMetrics,
+.playerMetrics,
+.overallMetrics,
+.lastRoundMetrics,
+.recentRounds {
+    display: grid;
+    gap: 8px;
+}
+
+.mapMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.currentMapFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: #90a1b9;
+    font-size: 13px;
+}
+
+.footerLabel {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.footerLabel svg {
+    width: 16px;
+    height: 16px;
+    color: #a685ff;
+}
+
+.playerContent {
+    display: grid;
+    min-height: 0;
+    flex: 1;
+    grid-template-columns: minmax(140px, 0.65fr) minmax(0, 1.75fr);
+    align-items: center;
+    gap: 16px;
+}
+
+.playerIdentity {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 12px;
+}
+
+.playerName {
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    font-size: clamp(1.4rem, 2.1vw, 2.7rem);
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.playerMetrics {
+    min-width: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.playerExtras {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.playerUnavailable {
+    display: grid;
+    flex: 1;
+    align-content: center;
+    justify-items: center;
+    gap: 8px;
+    color: #90a1b9;
+    font-size: 13px;
+    text-align: center;
+}
+
+.playerUnavailable svg {
+    width: 28px;
+    height: 28px;
+    color: #a685ff;
+}
+
+.playerUnavailable strong {
+    color: #f1f5f9;
+    font-size: 16px;
+}
+
+.overallMetrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: 12px;
+}
+
+.roundWins {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.sectionLabel {
+    color: #62748e;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.teamWinRow {
+    display: grid;
+    grid-template-columns: 80px minmax(0, 1fr) 48px;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.teamName {
+    overflow: hidden;
+    color: #cad5e2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.teamBar {
+    height: 8px;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.teamBarFill {
+    display: block;
+    height: 100%;
+    border-radius: 9999px;
+}
+
+.teamWins {
+    color: #e2e8f0;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.lastRoundHeader {
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.lastRoundTitle {
+    margin: 4px 0 0;
+    font-size: clamp(1.5rem, 2vw, 2.25rem);
+    font-weight: 900;
+    letter-spacing: -0.045em;
+}
+
+.lastRoundResult {
+    display: grid;
+    justify-items: end;
+    gap: 6px;
+}
+
+.lastRoundDate {
+    color: #62748e;
+    font-size: 12px;
+}
+
+.lastRoundMetrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.recentResults {
+    min-height: 0;
+    flex: 1;
+    margin-top: 8px;
+}
+
+.recentResults .sectionLabel {
+    margin-bottom: 6px;
+}
+
+.recentRounds {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.recentRoundCard {
+    min-width: 0;
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.recentRoundMap {
+    display: block;
+    overflow: hidden;
+    color: #f1f5f9;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.recentRoundDetails {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 4px;
+    font-size: 11px;
+}
+
+.recentRoundWinner {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.recentRoundMeta {
+    flex-shrink: 0;
+    color: #62748e;
+}
+
+@media (min-width: 640px) {
+    .canvas {
+        padding: 16px;
+    }
+
+    .connectionDetail {
+        display: inline;
+    }
+
+    .mapMetrics {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1280px) {
+    .canvas {
+        gap: 16px;
+        padding: 24px;
+    }
+
+    .panelGrid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .panel {
+        padding: 20px;
+    }
+
+    .currentMapPanel,
+    .overallStatsPanel {
+        grid-column: span 5 / span 5;
+    }
+
+    .playerStatsPanel,
+    .lastRoundPanel {
+        grid-column: span 7 / span 7;
+    }
+
+    .currentMapContent {
+        padding-top: 16px;
+        padding-bottom: 16px;
+    }
+
+    .avatar,
+    .avatarFallback {
+        width: 80px;
+        height: 80px;
+    }
+
+    .playerContent {
+        gap: 28px;
+    }
+}
+
+@media (max-height: 760px) {
+    .canvas {
+        padding: 12px;
+    }
+}

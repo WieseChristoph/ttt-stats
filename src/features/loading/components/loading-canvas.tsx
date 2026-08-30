@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
+import styles from './loading-screen.module.css';
 
 type CanvasMetricsType = {
     width: number;
@@ -41,7 +42,7 @@ export function LoadingCanvas({ children }: { children: ReactNode }) {
 
     return (
         <div
-            className="absolute top-0 left-0 grid grid-rows-[42px_minmax(0,1fr)] gap-3 p-3 sm:p-4 xl:gap-4 xl:p-6 [@media(max-height:760px)]:p-3"
+            className={styles.canvas}
             style={{
                 width: metrics.width,
                 height: metrics.height,

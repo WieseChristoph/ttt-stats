@@ -2,7 +2,8 @@ import { Clock3, Crosshair, Map as MapIcon, Shield, Skull, Trophy, Users } from 
 import type { LoadingSnapshotType } from '@/features/loading/loading-data';
 import { getTeamPresentation } from '@/shared/team';
 import { formatDate, formatDuration, formatNumber } from '@/shared/utils/format';
-import { LoadingMetric, PanelHeader, panelClassName, TeamPill } from '../loading-ui';
+import styles from '../loading-screen.module.css';
+import { LoadingMetric, PanelHeader, TeamPill } from '../loading-ui';
 
 type LastRoundPanelPropsType = {
     snapshot: Pick<LoadingSnapshotType, 'latestRound' | 'recentRounds'>;
@@ -19,28 +20,26 @@ export function LastRoundPanel({ snapshot }: LastRoundPanelPropsType) {
     const latestDeaths = snapshot.latestRound.players.reduce((total, player) => total + player.deaths, 0);
 
     return (
-        <section className={`${panelClassName} col-span-1 xl:col-span-7`}>
-            <div className="flex items-start justify-between gap-4">
+        <section className={`${styles.panel} ${styles.lastRoundPanel}`}>
+            <div className={styles.lastRoundHeader}>
                 <div>
                     <PanelHeader
                         icon={<Trophy />}
                         title="Last round"
                     />
-                    <h2 className="mt-1 mb-0 font-black text-[clamp(1.5rem,2vw,2.25rem)] tracking-[-0.045em]">
-                        {latestWinner.label} victory
-                    </h2>
+                    <h2 className={styles.lastRoundTitle}>{latestWinner.label} victory</h2>
                 </div>
-                <div className="grid justify-items-end gap-1.5">
+                <div className={styles.lastRoundResult}>
                     <TeamPill team={latestWinner} />
-                    <span className="text-slate-500 text-xs">{formatDate(snapshot.latestRound.endedAt)}</span>
+                    <span className={styles.lastRoundDate}>{formatDate(snapshot.latestRound.endedAt)}</span>
                 </div>
             </div>
-            <div className="my-2.5 grid grid-cols-3 gap-2">
+            <div className={styles.lastRoundMetrics}>
                 <LoadingMetric
                     icon={<MapIcon />}
                     label="Map"
                     value={snapshot.latestRound.session.map.name}
-                    valueClassName="text-base! leading-[1.15]! tracking-tight!"
+                    valueClassName={styles.compactMetricValue}
                 />
                 <LoadingMetric
                     icon={<Clock3 />}
@@ -68,11 +67,9 @@ export function LastRoundPanel({ snapshot }: LastRoundPanelPropsType) {
                     value={formatNumber(latestDeaths)}
                 />
             </div>
-            <div className="mt-2 min-h-0 flex-1">
-                <div className="mb-1.5 font-bold text-slate-500 text-xs uppercase tracking-[0.12em]">
-                    Recent results
-                </div>
-                <div className="grid grid-cols-3 gap-2">
+            <div className={styles.recentResults}>
+                <div className={styles.sectionLabel}>Recent results</div>
+                <div className={styles.recentRounds}>
                     {snapshot.recentRounds.map((round) => (
                         <RecentRoundCard
                             round={round}
@@ -90,20 +87,20 @@ function RecentRoundCard({ round }: { round: LoadingSnapshotType['recentRounds']
     const duration = Math.max(0, (new Date(round.endedAt).getTime() - new Date(round.startedAt).getTime()) / 1000);
 
     return (
-        <div className="min-w-0 rounded-lg border border-white/5 bg-white/3 px-2.5 py-1.5">
-            <strong className="block truncate text-[13px] text-slate-100">{round.mapName}</strong>
-            <div className="mt-1 flex min-w-0 items-center justify-between gap-2 text-[11px]">
+        <div className={styles.recentRoundCard}>
+            <strong className={styles.recentRoundMap}>{round.mapName}</strong>
+            <div className={styles.recentRoundDetails}>
                 <span
-                    className="flex min-w-0 items-center gap-1.5 truncate"
+                    className={styles.recentRoundWinner}
                     style={{ color: winner.color }}
                 >
                     <span
-                        className="size-1.75 shrink-0 rounded-full"
+                        className={styles.smallTeamDot}
                         style={{ backgroundColor: winner.color }}
                     />
                     {winner.label}
                 </span>
-                <span className="shrink-0 text-slate-500">
+                <span className={styles.recentRoundMeta}>
                     {round.playerCount}p · {formatDuration(duration)}
                 </span>
             </div>

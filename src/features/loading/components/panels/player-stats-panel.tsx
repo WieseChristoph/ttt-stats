@@ -1,7 +1,8 @@
 import { Activity, Crosshair, Shield, Skull, Trophy, Users } from 'lucide-react';
 import type { LoadingSnapshotType } from '@/features/loading/loading-data';
 import { displayName, formatNumber, labelize } from '@/shared/utils/format';
-import { LoadingMetric, PanelHeader, PlayerAvatar, panelClassName } from '../loading-ui';
+import styles from '../loading-screen.module.css';
+import { LoadingMetric, PanelHeader, PlayerAvatar } from '../loading-ui';
 
 type PlayerStatsPanelPropsType = {
     player: LoadingSnapshotType['requestedPlayer'];
@@ -11,7 +12,7 @@ export function PlayerStatsPanel({ player }: PlayerStatsPanelPropsType) {
     const playerName = player ? displayName(player.username, player.steamId) : 'Player unavailable';
 
     return (
-        <section className={`${panelClassName} col-span-1 xl:col-span-7`}>
+        <section className={`${styles.panel} ${styles.playerStatsPanel}`}>
             <PanelHeader
                 icon={<Users />}
                 title="Your stats"
@@ -37,17 +38,15 @@ function PlayerStatsContent({
 }) {
     return (
         <>
-            <div className="grid min-h-0 flex-1 grid-cols-[minmax(140px,0.65fr)_minmax(0,1.75fr)] items-center gap-4 xl:gap-7">
-                <div className="flex min-w-0 items-center gap-3">
+            <div className={styles.playerContent}>
+                <div className={styles.playerIdentity}>
                     <PlayerAvatar
                         avatarUrl={player.avatarFull ?? player.avatarMedium}
                         name={playerName}
                     />
-                    <h2 className="m-0 truncate font-black text-[clamp(1.4rem,2.1vw,2.7rem)] tracking-tighter">
-                        {playerName}
-                    </h2>
+                    <h2 className={styles.playerName}>{playerName}</h2>
                 </div>
-                <div className="grid min-w-0 grid-cols-3 gap-2">
+                <div className={styles.playerMetrics}>
                     <LoadingMetric
                         icon={<Trophy />}
                         label="Wins"
@@ -82,7 +81,7 @@ function PlayerStatsContent({
                     />
                 </div>
             </div>
-            <div className="grid grid-cols-4 gap-2 border-white/[0.07] border-t pt-3">
+            <div className={styles.playerExtras}>
                 <LoadingMetric
                     icon={<Crosshair />}
                     label="Headshots"
@@ -102,7 +101,7 @@ function PlayerStatsContent({
                     icon={<Trophy />}
                     label="Favorite weapon"
                     value={formatWeaponName(player.favoriteWeapon)}
-                    valueClassName="text-xl! tracking-tight!"
+                    valueClassName={styles.weaponMetricValue}
                 />
             </div>
         </>
@@ -111,10 +110,10 @@ function PlayerStatsContent({
 
 function PlayerUnavailable() {
     return (
-        <div className="grid flex-1 place-content-center justify-items-center gap-2 text-center text-slate-400">
-            <Users className="size-7 text-violet-400" />
-            <strong className="text-base text-slate-100">Player stats unavailable</strong>
-            <span className="text-[13px]">No valid Steam ID was provided.</span>
+        <div className={styles.playerUnavailable}>
+            <Users />
+            <strong>Player stats unavailable</strong>
+            <span>No valid Steam ID was provided.</span>
         </div>
     );
 }

@@ -2,7 +2,8 @@ import { Activity, Clock3, Map as MapIcon, Skull, Trophy, Users } from 'lucide-r
 import type { LoadingSnapshotType } from '@/features/loading/loading-data';
 import { getTeamPresentation } from '@/shared/team';
 import { formatNumber } from '@/shared/utils/format';
-import { LoadingMetric, PanelHeader, panelClassName } from '../loading-ui';
+import styles from '../loading-screen.module.css';
+import { LoadingMetric, PanelHeader } from '../loading-ui';
 
 type OverallStatsPanelPropsType = {
     snapshot: Pick<LoadingSnapshotType, 'globalStats' | 'teamWins'>;
@@ -13,12 +14,12 @@ export function OverallStatsPanel({ snapshot }: OverallStatsPanelPropsType) {
     const highestTeamWins = Math.max(...visibleTeamWins.map((entry) => entry.wins), 1);
 
     return (
-        <section className={`${panelClassName} col-span-1 xl:col-span-5`}>
+        <section className={`${styles.panel} ${styles.overallStatsPanel}`}>
             <PanelHeader
                 icon={<Activity />}
                 title="Overall stats"
             />
-            <div className="mt-3 grid grid-cols-4 gap-2">
+            <div className={styles.overallMetrics}>
                 <LoadingMetric
                     icon={<Trophy />}
                     label="Rounds"
@@ -66,8 +67,8 @@ export function OverallStatsPanel({ snapshot }: OverallStatsPanelPropsType) {
                     )}
                 />
             </div>
-            <div className="mt-3 flex min-h-0 flex-1 flex-col justify-center gap-2">
-                <div className="font-bold text-slate-500 text-xs uppercase tracking-[0.12em]">Round wins</div>
+            <div className={styles.roundWins}>
+                <div className={styles.sectionLabel}>Round wins</div>
                 {visibleTeamWins.map((entry) => (
                     <TeamWinRow
                         entry={entry}
@@ -90,15 +91,15 @@ function TeamWinRow({
     const team = getTeamPresentation(entry.team);
 
     return (
-        <div className="grid grid-cols-[80px_minmax(0,1fr)_48px] items-center gap-2 text-[13px]">
-            <span className="truncate text-slate-300">{team.label}</span>
-            <span className="h-2 overflow-hidden rounded-full bg-white/5">
+        <div className={styles.teamWinRow}>
+            <span className={styles.teamName}>{team.label}</span>
+            <span className={styles.teamBar}>
                 <span
-                    className="block h-full rounded-full"
+                    className={styles.teamBarFill}
                     style={{ width: `${(entry.wins / highestTeamWins) * 100}%`, backgroundColor: team.color }}
                 />
             </span>
-            <strong className="text-right text-slate-200 text-sm tabular-nums">{formatNumber(entry.wins)}</strong>
+            <strong className={styles.teamWins}>{formatNumber(entry.wins)}</strong>
         </div>
     );
 }
