@@ -1,0 +1,6 @@
+allowBuilds:
+  esbuild: true
+  libpq: true
+minimumReleaseAgeExclude:
+  - lucide-react@1.37.0
+  - zod@4.5.2

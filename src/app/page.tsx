@@ -1,46 +1,40 @@
-"use client";
+import { DashboardOverview } from '@/features/dashboard/components/dashboard-overview';
+import { getDashboardData } from '@/features/dashboard/dashboard-data';
 
-import { DateRangePicker } from "@/components/DateRangePicker";
-import { HomeSingleValueStats } from "@/components/HomeSingleValueStats";
-import { RoleWinRateChart } from "@/components/RoleWinRateChart";
-import { StatChartCard } from "@/components/StatChartCard";
-import { WeaponUsageChart } from "@/components/WeaponUsageChart";
-import { addDays } from "date-fns";
-import { Crown, Sword } from "lucide-react";
-import { useState } from "react";
-import type { DateRange } from "react-day-picker";
+export const revalidate = 30;
+export const dynamic = 'force-dynamic';
 
-export default function Home() {
-	const [dateRange, setDateRange] = useState<DateRange | undefined>({
-		from: addDays(new Date(), -30),
-		to: new Date(),
-	});
+const dayInMilliseconds = 86_400_000;
 
-	return (
-		<>
-			<div className="flex justify-between pb-4 items-center">
-				<h2 className="text-2xl">Stats Overview</h2>
-				<DateRangePicker dateRange={dateRange} onSelect={setDateRange} />
-			</div>
+function parseDate(value: string | undefined, fallback: Date, endOfDay: boolean) {
+    if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return fallback;
+    }
 
-			<HomeSingleValueStats dateRange={dateRange} />
+    const date = new Date(`${value}T${endOfDay ? '23:59:59.999' : '00:00:00.000'}Z`);
 
-			<div className="grid gap-8 md:grid-cols-2 mb-12">
-				<StatChartCard
-					title="Role Win Rates"
-					description="Win percentage by role over time"
-					icon={<Crown className="h-6 w-6 text-amber-400" />}
-				>
-					<RoleWinRateChart dateRange={dateRange} />
-				</StatChartCard>
-				<StatChartCard
-					title="Weapon Usage"
-					description="Most popular weapons by kill count"
-					icon={<Sword className="h-6 w-6 text-red-400" />}
-				>
-					<WeaponUsageChart dateRange={dateRange} />
-				</StatChartCard>
-			</div>
-		</>
-	);
+    return Number.isNaN(date.getTime()) ? fallback : date;
+}
+
+function getDates(searchParams: Record<string, string | undefined>) {
+    const now = new Date();
+    const defaultFrom = new Date(now.getTime() - 30 * dayInMilliseconds);
+    defaultFrom.setUTCHours(0, 0, 0, 0);
+    const from = parseDate(searchParams.from, defaultFrom, false);
+    const to = parseDate(searchParams.to, now, true);
+
+    return from <= to ? { from, to } : { from: defaultFrom, to: now };
+}
+
+export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+    const range = getDates(await searchParams);
+    const dashboard = await getDashboardData(range);
+
+    return (
+        <DashboardOverview
+            dashboard={dashboard}
+            from={range.from.toISOString().slice(0, 10)}
+            to={range.to.toISOString().slice(0, 10)}
+        />
+    );
 }

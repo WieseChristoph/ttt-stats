@@ -1,19 +1,64 @@
 services:
-  db:
-    image: postgres:17-alpine
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_USER: ${DB_USER}
-    ports:
-      - ${DB_PORT}:5432
-    healthcheck:
-      test: ["CMD", "pg_isready", "-d", "${DB_NAME}", "-U", "${DB_USER}"]
-      timeout: 5s
-      retries: 5
-      start_period: 60s
-    volumes:
-      - database_data:/var/lib/postgresql/data:rw
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: runner
+        container_name: ttt_stats
+        depends_on:
+            migrate:
+                condition: service_completed_successfully
+            redis:
+                condition: service_healthy
+        env_file:
+            - .env
+        environment:
+            DB_HOST: db
+            DB_PORT: '5432'
+            REDIS_URL: redis://redis:6379
+        ports:
+            - '${APP_PORT:-3000}:3000'
+        restart: unless-stopped
+    db:
+        image: postgres:17-alpine
+        container_name: ttt_stats_db
+        environment:
+            POSTGRES_DB: ${DB_NAME}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+            POSTGRES_USER: ${DB_USER}
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U ${DB_USER} -d ${DB_NAME}']
+            interval: 5s
+            timeout: 5s
+            retries: 10
+        volumes:
+            - database_data:/var/lib/postgresql/data
+    redis:
+        image: redis:8-alpine
+        container_name: ttt_stats_redis
+        healthcheck:
+            test: ['CMD', 'redis-cli', 'ping']
+            interval: 5s
+            timeout: 5s
+            retries: 10
+        volumes:
+            - redis_data:/data
+    migrate:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: migrator
+        container_name: ttt_stats_migration
+        depends_on:
+            db:
+                condition: service_healthy
+        env_file:
+            - .env
+        environment:
+            DB_HOST: db
+            DB_PORT: '5432'
+        restart: 'no'
 
 volumes:
-  database_data:
+    database_data:
+    redis_data:

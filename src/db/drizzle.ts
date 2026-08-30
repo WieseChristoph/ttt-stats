@@ -1,6 +1,7 @@
-import { drizzle } from "drizzle-orm/node-postgres";
-import * as schema from "./schema";
+import { drizzle } from 'drizzle-orm/node-postgres';
+import env from '@/config/env';
+import * as schema from './schema';
 
-const DATABASE_URL = `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
+const DATABASE_URL = `postgresql://${env.DB_USER}:${env.DB_PASSWORD}@${env.DB_HOST}:${env.DB_PORT}/${env.DB_NAME}`;
 
 export const db = drizzle(DATABASE_URL, { schema });

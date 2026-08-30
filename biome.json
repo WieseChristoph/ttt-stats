@@ -1,34 +1,79 @@
 {
-	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-	"vcs": {
-		"enabled": false,
-		"clientKind": "git",
-		"useIgnoreFile": false
-	},
-	"files": {
-		"ignoreUnknown": false,
-		"ignore": ["node_modules"]
-	},
-	"formatter": {
-		"enabled": true,
-		"indentStyle": "tab",
-		"lineWidth": 120
-	},
-	"organizeImports": {
-		"enabled": true
-	},
-	"linter": {
-		"enabled": true,
-		"rules": {
-			"recommended": true,
-			"correctness": {
-				"noUnusedImports": "error"
-			}
-		}
-	},
-	"javascript": {
-		"formatter": {
-			"quoteStyle": "double"
-		}
-	}
+    "$schema": "https://biomejs.dev/schemas/latest/schema.json",
+
+    "files": {
+        "includes": ["**", "!**/.next", "!**/node_modules", "!**/dist", "!**/build", "!**/next-env.d.ts"],
+        "ignoreUnknown": true
+    },
+
+    "formatter": {
+        "enabled": true,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 120
+    },
+
+    "javascript": {
+        "formatter": {
+            "quoteStyle": "single",
+            "semicolons": "always",
+            "arrowParentheses": "always",
+            "bracketSpacing": true,
+            "trailingCommas": "all",
+            "attributePosition": "multiline"
+        }
+    },
+
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "preset": "recommended",
+            "correctness": {
+                "noUnusedFunctionParameters": "error",
+                "noUnusedVariables": "error",
+                "noUnusedImports": {
+                    "level": "error",
+                    "fix": "safe"
+                }
+            },
+            "style": {
+                "useImportType": "warn",
+                "useBlockStatements": {
+                    "level": "error",
+                    "fix": "safe"
+                },
+                "noEnum": "error"
+            },
+            "suspicious": {
+                "noConsole": {
+                    "level": "error",
+                    "options": {
+                        "allow": ["error", "info", "warn"]
+                    }
+                },
+                "noDebugger": "error",
+                "useIterableCallbackReturn": "off"
+            },
+            "nursery": {
+                "useSortedClasses": {
+                    "level": "error",
+                    "fix": "safe"
+                }
+            }
+        }
+    },
+
+    "css": {
+        "parser": {
+            "tailwindDirectives": true
+        }
+    },
+
+    "assist": {
+        "actions": {
+            "source": {
+                "organizeImports": "on"
+            }
+        }
+    }
 }

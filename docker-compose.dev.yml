@@ -1,0 +1,32 @@
+services:
+    db:
+        image: postgres:17-alpine
+        environment:
+            POSTGRES_DB: ${DB_NAME:-ttt_stats}
+            POSTGRES_PASSWORD: ${DB_PASSWORD:-ttt_stats_dev}
+            POSTGRES_USER: ${DB_USER:-ttt_stats}
+        ports:
+            - '${DB_PORT:-5432}:5432'
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-ttt_stats} -d ${DB_NAME:-ttt_stats}']
+            interval: 5s
+            timeout: 5s
+            retries: 10
+        volumes:
+            - ttt_stats_dev_data:/var/lib/postgresql/data
+
+    redis:
+        image: redis:8-alpine
+        healthcheck:
+            test: ['CMD', 'redis-cli', 'ping']
+            interval: 5s
+            timeout: 5s
+            retries: 10
+        ports:
+            - '6379:6379'
+        volumes:
+            - ttt_stats_dev_redis:/data
+
+volumes:
+    ttt_stats_dev_data:
+    ttt_stats_dev_redis:

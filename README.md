@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TTT Stats
 
-## Getting Started
+A statistics website and loading screen for Trouble in Terrorist Town 2. Rounds are collected by the companion [TTT2 Stats addon](https://github.com/WieseChristoph/ttt2-stats-addon), stored in PostgreSQL, and enriched with Steam names and avatars cached in Redis.
 
-First, run the development server:
+![TTT Stats loading screen](.github/screenshots/loading.png)
+
+The website provides an overall dashboard, searchable map and player histories, detailed round event feeds, and a fixed-size `/loading` view for Garry's Mod loading screens.
+
+## Development
+
+Requirements: Node.js 24, pnpm 11, and Docker with Compose.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+cp .env.example .env
+docker compose -f docker-compose.dev.yml up -d
+pnpm install
+pnpm db:migrate
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Before starting, set `STEAM_API_KEY` and replace `STATS_INGEST_TOKEN` in `.env`. The ingest token must match the addon's `token`. The app is available at <http://localhost:3000>.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Useful checks:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm tscheck
+pnpm fix:all
+pnpm build
+```
 
-## Learn More
+## Docker deployment
 
-To learn more about Next.js, take a look at the following resources:
+The production Compose stack includes the Next.js app, PostgreSQL, Redis, and a one-shot migration container:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+cp .env.example .env
+# Set secure database and ingest credentials, plus a Steam Web API key.
+docker compose up -d --build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Database migrations run before the app starts. `APP_PORT` controls the exposed port and defaults to `3000`. Put the app behind an HTTPS reverse proxy for a public deployment.
 
-## Deploy on Vercel
+Configure the [TTT2 Stats addon](https://github.com/WieseChristoph/ttt2-stats-addon) with this deployment URL and the same `STATS_INGEST_TOKEN`. For the loading screen, use:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+https://stats.example.com/loading?mapname=%m&steamid=%s
+```

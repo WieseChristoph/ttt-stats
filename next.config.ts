@@ -1,14 +1,16 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-	images: {
-		remotePatterns: [
-			{
-				protocol: "https",
-				hostname: "avatars.steamstatic.com",
-			},
-		],
-	},
+    output: 'standalone',
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: '**.steamstatic.com',
+                pathname: '/**',
+            },
+        ],
+    },
 };
 
 export default nextConfig;

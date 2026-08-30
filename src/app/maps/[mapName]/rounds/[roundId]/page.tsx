@@ -1,55 +1,26 @@
-"use client";
+import { RoundDetails } from '@/features/rounds/components/round-details';
+import { getRoundDetails } from '@/features/rounds/round-data';
+import { EmptyState } from '@/shared/components/ui/empty-state';
 
-import { getRound } from "@/actions/roundAction";
-import { KillFeed } from "@/components/KillFeed";
-import { PlayerStats } from "@/components/PlayerStats";
-import { RoundSingleValueStats } from "@/components/RoundSingleValueStats";
-import { StatChartCard } from "@/components/StatChartCard";
-import type { RoundWithRelations } from "@/db/schema";
-import { Loader2, Skull, Users } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
-export default function Round() {
-	const { mapName, roundId } = useParams<{ mapName: string; roundId: string }>();
+export default async function RoundPage({ params }: { params: Promise<{ mapName: string; roundId: string }> }) {
+    const { mapName, roundId: rawRoundId } = await params;
+    const roundId = Number(rawRoundId);
+    const round = Number.isSafeInteger(roundId) && roundId > 0 ? await getRoundDetails(mapName, roundId) : undefined;
 
-	const [round, setRound] = useState<RoundWithRelations>();
-
-	useEffect(() => {
-		getRound(Number(roundId)).then((result) => setRound(result));
-	}, [roundId]);
-
-	if (!round) {
-		return (
-			<div className="flex justify-center pb-4">
-				<Loader2 className="animate-spin" />
-			</div>
-		);
-	}
-
-	return (
-		<>
-			<h2 className="text-3xl font-bold bg-gradient-to-r from-zinc-100 to-zinc-400 bg-clip-text text-transparent mb-6">
-				Round {roundId} on {mapName}
-			</h2>
-			<RoundSingleValueStats round={round} />
-
-			<div className="grid gap-8 md:grid-cols-2 mb-12">
-				<StatChartCard
-					title="Kill Feed"
-					description="Chronological list of kills during the round"
-					icon={<Skull className="h-6 w-6 text-red-600" />}
-				>
-					<KillFeed round={round} />
-				</StatChartCard>
-				<StatChartCard
-					title="Player Performance"
-					description="Stats of all players"
-					icon={<Users className="h-6 w-6 text-sky-600" />}
-				>
-					<PlayerStats round={round} />
-				</StatChartCard>
-			</div>
-		</>
-	);
+    return round ? (
+        <RoundDetails
+            round={round}
+            roundLabel={rawRoundId}
+        />
+    ) : (
+        <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8">
+            <EmptyState
+                title="Round not found"
+                message="That round is not in the archive."
+            />
+        </div>
+    );
 }

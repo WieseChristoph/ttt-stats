@@ -1,0 +1,46 @@
+name: CI
+
+on:
+    push:
+        branches: ['main']
+    pull_request:
+        branches: ['main']
+
+concurrency:
+    group: ci-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+env:
+    NEXT_TELEMETRY_DISABLED: '1'
+    SKIP_ENV_VALIDATION: '1'
+
+jobs:
+    quality:
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+
+        steps:
+            - name: Check out repository
+              uses: actions/checkout@v5
+
+            - name: Set up pnpm and Node.js
+              uses: pnpm/setup@v1
+              with:
+                  runtime: node@24
+                  cache: true
+                  install: false
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Run Biome checks
+              run: pnpm run check
+
+            - name: Run TypeScript checks
+              run: pnpm run tscheck
+
+            - name: Build application
+              run: pnpm run build

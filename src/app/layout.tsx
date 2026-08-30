@@ -1,37 +1,20 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { Header } from "@/components/Header";
-
-const geistSans = Geist({
-	variable: "--font-geist-sans",
-	subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-	variable: "--font-geist-mono",
-	subsets: ["latin"],
-});
+import type { Metadata } from 'next';
+import './globals.css';
+import { SiteHeader } from '@/shared/components/layout/site-header';
 
 export const metadata: Metadata = {
-	title: "TTT Stats",
-	description: "Trouble in Terrorist Town Statistics",
-	icons: {
-		icon: "/ttt.png",
-	},
+    title: 'TTT Stats',
+    description: 'Round, map, and player statistics for the TTT server.',
+    icons: { icon: '/ttt.png' },
 };
 
-export default function RootLayout({
-	children,
-}: Readonly<{
-	children: React.ReactNode;
-}>) {
-	return (
-		<html lang="en">
-			<body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#121218] text-zinc-100`}>
-				<Header />
-				<main className="container mx-auto pt-4">{children}</main>
-			</body>
-		</html>
-	);
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+    return (
+        <html lang="en">
+            <body>
+                <SiteHeader />
+                <main>{children}</main>
+            </body>
+        </html>
+    );
 }

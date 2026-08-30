@@ -1,88 +1,36 @@
-"use client";
+import { z } from 'zod';
+import { MapDetails } from '@/features/maps/components/map-details';
+import { getMapDetails } from '@/features/maps/map-data';
+import { EmptyState } from '@/shared/components/ui/empty-state';
 
-import { getMapSessionsByName } from "@/actions/mapAction";
-import { MapSingleValueStats } from "@/components/MapSingleValueStats";
-import { SessionOverview } from "@/components/SessionOverview";
-import type { MapWithRelations } from "@/db/schema";
-import { Loader2 } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { useInView } from "react-intersection-observer";
+export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
-const SESSION_PAGE_SIZE = 5;
+type MapPagePropsType = {
+    params: Promise<{ mapName: string }>;
+    searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
-export default function MapInfo() {
-	const { mapName } = useParams<{ mapName: string }>();
+const getQueryValue = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value);
 
-	const [sessions, setSessions] = useState<MapWithRelations[]>([]);
-	const [openSessions, setOpenSessions] = useState<number[]>([]);
+const MapHistoryQuerySchema = z.object({
+    page: z.coerce.number().int().positive().catch(1),
+});
 
-	const [page, setPage] = useState<number>(1);
-	const [hasMore, setHasMore] = useState<boolean>(true);
-	const [isLoading, setIsLoading] = useState(false);
-	const { ref, inView } = useInView();
+export default async function MapPage({ params, searchParams }: MapPagePropsType) {
+    const { mapName } = await params;
+    const query = await searchParams;
+    const { page } = MapHistoryQuerySchema.parse({ page: getQueryValue(query.page) });
+    const map = await getMapDetails(mapName, page);
 
-	const loadMoreSessions = useCallback(async () => {
-		if (!hasMore || isLoading) return;
-
-		setIsLoading(true);
-		try {
-			const results = await getMapSessionsByName(mapName, SESSION_PAGE_SIZE, (page - 1) * SESSION_PAGE_SIZE);
-
-			setSessions((prev) => [...prev, ...results]);
-			setOpenSessions((prev) => (prev.length === 0 ? [results[0].id] : prev));
-
-			setHasMore(results.length === SESSION_PAGE_SIZE);
-			if (results.length === SESSION_PAGE_SIZE) {
-				setPage((prev) => prev + 1);
-			}
-		} catch (error) {
-			console.error("Failed to load sessions:", error);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [mapName, hasMore, isLoading, page]);
-
-	useEffect(() => {
-		if (inView && hasMore && !isLoading) {
-			loadMoreSessions();
-		}
-	}, [inView, hasMore, isLoading, loadMoreSessions]);
-
-	const toggleSession = (sessionId: number) => {
-		setOpenSessions((prev) =>
-			prev.includes(sessionId) ? prev.filter((id) => id !== sessionId) : [...prev, sessionId],
-		);
-	};
-
-	return (
-		<>
-			<h2 className="text-3xl font-bold bg-gradient-to-r from-zinc-100 to-zinc-400 bg-clip-text text-transparent mb-6">
-				{mapName}
-			</h2>
-			<MapSingleValueStats mapName={mapName} />
-
-			<h3 className="text-xl font-bold text-zinc-100">Sessions</h3>
-			<div className="py-4 gap-4 flex flex-col">
-				{sessions.map((session) => (
-					<SessionOverview
-						key={session.id}
-						session={session}
-						openSessions={openSessions}
-						onToggleSession={toggleSession}
-					/>
-				))}
-				{isLoading && (
-					<div className="flex justify-center pb-4">
-						<Loader2 className="animate-spin" />
-					</div>
-				)}
-				{!isLoading && hasMore && (
-					<div ref={ref} className="flex justify-center pb-4">
-						<Loader2 className="animate-spin" />
-					</div>
-				)}
-			</div>
-		</>
-	);
+    return map ? (
+        <MapDetails map={map} />
+    ) : (
+        <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8">
+            <EmptyState
+                title="Map not found"
+                message="That arena is not in the archive."
+            />
+        </div>
+    );
 }
