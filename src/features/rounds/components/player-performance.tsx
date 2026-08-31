@@ -4,23 +4,24 @@ import { Avatar } from '@/shared/components/ui/avatar';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { SectionHeading } from '@/shared/components/ui/section-heading';
 import { TeamBadge } from '@/shared/components/ui/team-badge';
-import { displayName, labelize } from '@/shared/utils/format';
+import { percentage } from '@/shared/stats';
+import { displayName, formatDuration, formatNumber, formatPercentage, labelize } from '@/shared/utils/format';
 
 export function PlayerPerformance({ players }: { players: FullRoundType['players'] }) {
     return (
         <section className="min-w-0 rounded-2xl border border-(--line) bg-[linear-gradient(145deg,rgba(23,29,42,0.96),rgba(18,23,34,0.92))] p-6 max-[559px]:p-4.25">
-            <SectionHeading
-                title="Player performance"
-                action={<PlayerPerformanceHeader />}
-            />
+            <SectionHeading title="Player performance" />
             {players.length ? (
-                <div className="grid gap-0.5">
-                    {players.map((entry) => (
-                        <PlayerPerformanceRow
-                            entry={entry}
-                            key={entry.id}
-                        />
-                    ))}
+                <div className="overflow-x-auto">
+                    <div className="min-w-180">
+                        <PlayerPerformanceHeader />
+                        {players.map((entry) => (
+                            <PlayerPerformanceRow
+                                entry={entry}
+                                key={entry.id}
+                            />
+                        ))}
+                    </div>
                 </div>
             ) : (
                 <EmptyState
@@ -34,10 +35,17 @@ export function PlayerPerformance({ players }: { players: FullRoundType['players
 
 function PlayerPerformanceHeader() {
     return (
-        <div className="grid min-w-47.5 grid-cols-3 gap-3 self-end text-right font-semibold text-(--muted) text-[9px] uppercase tracking-[0.04em]">
+        <div className="grid grid-cols-[34px_minmax(160px,1.5fr)_100px_repeat(7,minmax(66px,1fr))] gap-3 px-2.25 pb-2 text-right font-semibold text-(--muted) text-[9px] uppercase tracking-[0.04em] [&>span:nth-child(-n+3)]:text-left">
+            <span />
+            <span>Player / role</span>
+            <span>Team</span>
             <span>Kills</span>
             <span>Deaths</span>
             <span>Team kills</span>
+            <span>Damage</span>
+            <span>Taken</span>
+            <span>Accuracy</span>
+            <span>Survival</span>
         </div>
     );
 }
@@ -45,7 +53,7 @@ function PlayerPerformanceHeader() {
 function PlayerPerformanceRow({ entry }: { entry: FullRoundType['players'][number] }) {
     return (
         <Link
-            className="group grid grid-cols-[34px_minmax(0,1fr)_auto_minmax(190px,auto)] items-center gap-3 rounded-[10px] px-2.25 py-2.5 hover:bg-white/4.5 max-[559px]:grid-cols-[34px_minmax(0,1fr)] max-[559px]:gap-2"
+            className="group grid grid-cols-[34px_minmax(160px,1.5fr)_100px_repeat(7,minmax(66px,1fr))] items-center gap-3 rounded-[10px] px-2.25 py-2.5 hover:bg-white/4.5"
             href={`/players/${entry.player.steamId}`}
         >
             <Avatar
@@ -59,17 +67,25 @@ function PlayerPerformanceRow({ entry }: { entry: FullRoundType['players'][numbe
                     {displayName(entry.player.username, entry.player.steamId)}
                 </strong>
                 <small className="text-(--muted) text-[10px]">
-                    {entry.finalSubroleName ? labelize(entry.finalSubroleName) : 'Role unavailable'}
+                    {entry.initialSubroleName && entry.initialSubroleName !== entry.finalSubroleName
+                        ? `${labelize(entry.initialSubroleName)} → ${labelize(entry.finalSubroleName)}`
+                        : entry.finalSubroleName
+                          ? labelize(entry.finalSubroleName)
+                          : 'Role unavailable'}
                 </small>
             </span>
-            <span className="max-[559px]:col-start-2 max-[559px]:row-start-2">
+            <span>
                 <TeamBadge teamName={entry.finalTeamName} />
             </span>
-            <div className="grid min-w-47.5 grid-cols-3 gap-3 max-[559px]:col-start-2 max-[559px]:min-w-0">
-                <b className="text-right text-(--amber) text-[15px] max-[559px]:text-left">{entry.kills}</b>
-                <b className="text-right text-(--amber) text-[15px] max-[559px]:text-left">{entry.deaths}</b>
-                <b className="text-right text-(--amber) text-[15px] max-[559px]:text-left">{entry.teamKills}</b>
-            </div>
+            <b className="text-right text-(--amber) text-[15px]">{Math.max(0, entry.kills - entry.teamKills)}</b>
+            <b className="text-right text-[15px]">{entry.deaths}</b>
+            <b className="text-right text-[15px]">{entry.teamKills}</b>
+            <b className="text-right text-[15px]">{formatNumber(entry.damageDealt)}</b>
+            <b className="text-right text-[15px]">{formatNumber(entry.damageTaken)}</b>
+            <b className="text-right text-[15px]">
+                {formatPercentage(percentage(entry.shotsHit ?? 0, entry.shotsFired ?? 0))}
+            </b>
+            <b className="text-right text-[15px]">{formatDuration(entry.survivalSeconds)}</b>
         </Link>
     );
 }

@@ -1,8 +1,13 @@
-import { ArrowLeft, Skull, Timer, Users } from 'lucide-react';
+import { ArrowLeft, Crosshair, RefreshCw, Skull, Target, Timer, Users, Zap } from 'lucide-react';
 import Link from 'next/link';
+import { AliveTimeline } from '@/features/rounds/components/alive-timeline';
+import { RoundWeapons } from '@/features/rounds/components/round-weapons';
+import { TeamScoreboard } from '@/features/rounds/components/team-scoreboard';
+import { getRoundCombat, type RoundCombatType } from '@/features/rounds/round-analytics';
 import type { FullRoundType } from '@/features/rounds/round-data';
 import { TeamBadge } from '@/shared/components/ui/team-badge';
-import { formatDate, formatDuration } from '@/shared/utils/format';
+import { percentage } from '@/shared/stats';
+import { formatDate, formatDuration, formatNumber, formatPercentage } from '@/shared/utils/format';
 import { EventFeed } from './event-feed';
 import { PlayerPerformance } from './player-performance';
 
@@ -35,10 +40,42 @@ export function RoundDetails({ round, roundLabel }: { round: FullRoundType; roun
                 players={players.length}
                 seconds={seconds}
             />
+            <CombatMetrics combat={getRoundCombat(round)} />
+            <TeamScoreboard round={round} />
+            <AliveTimeline round={round} />
             <div className="mt-3.5 grid grid-cols-1 gap-3.5 min-[850px]:grid-cols-2">
                 <EventFeed round={round} />
                 <PlayerPerformance players={players} />
             </div>
+            <RoundWeapons round={round} />
+        </div>
+    );
+}
+
+function CombatMetrics({ combat }: { combat: RoundCombatType }) {
+    const entries = [
+        { label: 'Enemy kills', value: formatNumber(combat.enemyKills), icon: <Crosshair /> },
+        { label: 'Headshots', value: formatNumber(combat.headshots), icon: <Target /> },
+        { label: 'Teamkills', value: formatNumber(combat.teamKills), icon: <Skull /> },
+        {
+            label: 'Accuracy',
+            value: combat.hasTelemetry ? formatPercentage(percentage(combat.shotsHit, combat.shotsFired)) : '—',
+            icon: <Zap />,
+        },
+        { label: 'Damage', value: combat.hasTelemetry ? formatNumber(combat.damage) : '—', icon: <Zap /> },
+        { label: 'Role changes / revivals', value: `${combat.roleChanges} / ${combat.revivals}`, icon: <RefreshCw /> },
+    ];
+
+    return (
+        <div className="mb-7 grid grid-cols-2 gap-3 xl:grid-cols-6 min-[850px]:grid-cols-3">
+            {entries.map((entry) => (
+                <RoundMetric
+                    icon={entry.icon}
+                    label={entry.label}
+                    value={entry.value}
+                    key={entry.label}
+                />
+            ))}
         </div>
     );
 }

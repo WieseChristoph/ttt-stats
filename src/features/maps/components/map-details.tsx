@@ -1,12 +1,16 @@
-import { ArrowLeft, ArrowUpRight, CalendarDays, Clock3, Skull, Trophy } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, CalendarDays, Clock3, Crosshair, Skull, Target, Trophy, Users } from 'lucide-react';
 import Link from 'next/link';
 import type { MapDetailsType } from '@/features/maps/map-data';
+import { Avatar } from '@/shared/components/ui/avatar';
 import { EmptyState } from '@/shared/components/ui/empty-state';
 import { MetricCard } from '@/shared/components/ui/metric-card';
 import { Pagination } from '@/shared/components/ui/pagination';
 import { SectionHeading } from '@/shared/components/ui/section-heading';
+import { StatsChart } from '@/shared/components/ui/stats-chart';
 import { TeamBadge } from '@/shared/components/ui/team-badge';
-import { formatDate, formatDuration, formatNumber } from '@/shared/utils/format';
+import { formatWeaponLabel, percentage } from '@/shared/stats';
+import { getTeamPresentation } from '@/shared/team';
+import { displayName, formatDate, formatDuration, formatNumber, formatPercentage } from '@/shared/utils/format';
 
 export function MapDetails({ map }: { map: MapDetailsType }) {
     return (
@@ -46,8 +50,157 @@ export function MapDetails({ map }: { map: MapDetailsType }) {
                     tone="red"
                 />
             </div>
+            <MapProfileMetrics map={map} />
+            <div className="mb-7 grid grid-cols-1 gap-3.5 min-[850px]:grid-cols-2">
+                <MapOutcomePanel map={map} />
+                <MapWeaponPanel map={map} />
+                <MapLeadersPanel map={map} />
+            </div>
             <MapSessions map={map} />
         </div>
+    );
+}
+
+function MapProfileMetrics({ map }: { map: MapDetailsType }) {
+    const teamKills = map.combat?.teamKills ?? 0;
+    const attributedKills = (map.combat?.enemyKills ?? 0) + teamKills;
+
+    return (
+        <div className="mb-7 grid grid-cols-2 gap-3 min-[850px]:grid-cols-4">
+            <MetricCard
+                label="Avg. lobby"
+                value={formatNumber(map.totalRounds ? map.playerRounds / map.totalRounds : 0)}
+                detail="players per round"
+                icon={<Users />}
+                tone="blue"
+            />
+            <MetricCard
+                label="Enemy kills / round"
+                value={formatNumber(map.totalRounds ? (map.combat?.enemyKills ?? 0) / map.totalRounds : 0)}
+                icon={<Crosshair />}
+                tone="red"
+            />
+            <MetricCard
+                label="Median elimination"
+                value={formatDuration(map.combat?.medianEliminationSeconds)}
+                icon={<Clock3 />}
+                tone="amber"
+            />
+            <MetricCard
+                label="Teamkill rate"
+                value={formatPercentage(percentage(teamKills, attributedKills))}
+                icon={<Target />}
+                tone="red"
+            />
+        </div>
+    );
+}
+
+function MapOutcomePanel({ map }: { map: MapDetailsType }) {
+    const teams = map.teamWins.map((entry) => ({ ...entry, presentation: getTeamPresentation(entry.team) }));
+
+    return (
+        <section className="rounded-2xl border border-(--line) bg-(--panel) p-6 max-[559px]:p-4.25">
+            <SectionHeading title="Outcome profile" />
+            <StatsChart
+                type="bar"
+                horizontal
+                height={300}
+                labels={teams.map((entry) => entry.presentation.label)}
+                datasets={[
+                    {
+                        label: 'Wins',
+                        values: teams.map((entry) => entry.wins),
+                        colors: teams.map((entry) => entry.presentation.color),
+                    },
+                ]}
+            />
+        </section>
+    );
+}
+
+function MapWeaponPanel({ map }: { map: MapDetailsType }) {
+    return (
+        <section className="rounded-2xl border border-(--line) bg-(--panel) p-6 max-[559px]:p-4.25">
+            <SectionHeading title="Weapons on this map" />
+            {map.weapons.length ? (
+                <div className="grid gap-1">
+                    <div className="grid grid-cols-[minmax(0,1fr)_60px_64px_58px] gap-2 px-2 pb-1 font-semibold text-(--muted) text-[9px] uppercase [&>span:not(:first-child)]:text-right">
+                        <span>Weapon</span>
+                        <span>Users</span>
+                        <span>Kills</span>
+                        <span>Accuracy</span>
+                    </div>
+                    {map.weapons.map((weapon) => (
+                        <div
+                            className="grid grid-cols-[minmax(0,1fr)_60px_64px_58px] gap-2 rounded-lg px-2 py-2 text-xs hover:bg-white/4"
+                            key={weapon.weaponName}
+                        >
+                            <strong className="truncate">{formatWeaponLabel(weapon.weaponName)}</strong>
+                            <span className="text-right text-(--muted)">{weapon.users} users</span>
+                            <b className="text-right text-(--amber)">{weapon.kills} kills</b>
+                            <b className="text-right">
+                                {formatPercentage(
+                                    percentage(Number(weapon.shotsHit ?? 0), Number(weapon.shotsFired ?? 0)),
+                                )}
+                            </b>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <EmptyState
+                    title="No weapon data"
+                    message="No weapon kills were recorded on this map."
+                />
+            )}
+        </section>
+    );
+}
+
+function MapLeadersPanel({ map }: { map: MapDetailsType }) {
+    return (
+        <section className="rounded-2xl border border-(--line) bg-(--panel) p-6 max-[559px]:p-4.25 min-[850px]:col-span-2">
+            <SectionHeading title="Player performance on this map" />
+            {map.leaders.length ? (
+                <div className="grid gap-1 md:grid-cols-2">
+                    {map.leaders.map((player, index) => (
+                        <Link
+                            className="grid grid-cols-[24px_34px_minmax(0,1fr)_repeat(3,58px)] items-center gap-2 rounded-lg px-2 py-2 hover:bg-white/4"
+                            href={`/players/${player.steamId}`}
+                            key={player.steamId}
+                        >
+                            <b className="text-(--muted) text-xs">{index + 1}</b>
+                            <Avatar
+                                name={player.username}
+                                src={player.avatarMedium}
+                                steamId={player.steamId}
+                                size="small"
+                            />
+                            <strong className="truncate text-xs">{displayName(player.username, player.steamId)}</strong>
+                            <span className="text-right text-xs">
+                                <b className="block">{player.kills}</b>
+                                <small className="text-(--muted)">kills</small>
+                            </span>
+                            <span className="text-right text-xs">
+                                <b className="block">
+                                    {player.deaths ? (player.kills / player.deaths).toFixed(2) : player.kills}
+                                </b>
+                                <small className="text-(--muted)">K/D</small>
+                            </span>
+                            <span className="text-right text-xs">
+                                <b className="block">{formatPercentage(percentage(player.wins, player.rounds))}</b>
+                                <small className="text-(--muted)">wins</small>
+                            </span>
+                        </Link>
+                    ))}
+                </div>
+            ) : (
+                <EmptyState
+                    title="No qualified players"
+                    message="Players need at least five rounds on this map."
+                />
+            )}
+        </section>
     );
 }
 

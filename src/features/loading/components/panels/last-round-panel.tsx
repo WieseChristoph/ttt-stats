@@ -1,5 +1,6 @@
 import { Clock3, Crosshair, Map as MapIcon, Shield, Skull, Trophy, Users } from 'lucide-react';
 import type { LoadingSnapshotType } from '@/features/loading/loading-data';
+import { getRoundCombat } from '@/features/rounds/round-analytics';
 import { getTeamPresentation } from '@/shared/team';
 import { formatDate, formatDuration, formatNumber } from '@/shared/utils/format';
 import styles from '../loading-screen.module.css';
@@ -16,8 +17,7 @@ export function LastRoundPanel({ snapshot }: LastRoundPanelPropsType) {
         (new Date(snapshot.latestRound.endedAt).getTime() - new Date(snapshot.latestRound.startedAt).getTime()) / 1000,
     );
     const latestSurvivors = snapshot.latestRound.players.filter((player) => player.deaths === 0).length;
-    const latestKills = snapshot.latestRound.players.reduce((total, player) => total + player.kills, 0);
-    const latestDeaths = snapshot.latestRound.players.reduce((total, player) => total + player.deaths, 0);
+    const latestCombat = getRoundCombat(snapshot.latestRound);
 
     return (
         <section className={`${styles.panel} ${styles.lastRoundPanel}`}>
@@ -58,13 +58,13 @@ export function LastRoundPanel({ snapshot }: LastRoundPanelPropsType) {
                 />
                 <LoadingMetric
                     icon={<Crosshair />}
-                    label="Kills"
-                    value={formatNumber(latestKills)}
+                    label="Headshots"
+                    value={formatNumber(latestCombat.headshots)}
                 />
                 <LoadingMetric
                     icon={<Skull />}
-                    label="Deaths"
-                    value={formatNumber(latestDeaths)}
+                    label="Teamkills"
+                    value={formatNumber(latestCombat.teamKills)}
                 />
             </div>
             <div className={styles.recentResults}>

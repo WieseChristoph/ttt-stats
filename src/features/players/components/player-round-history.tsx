@@ -2,9 +2,10 @@ import { CircleX, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import type { PlayerDetailsType } from '@/features/players/player-data';
 import { EmptyState } from '@/shared/components/ui/empty-state';
+import { RoleBadge } from '@/shared/components/ui/role-badge';
 import { SectionHeading } from '@/shared/components/ui/section-heading';
-import { TeamBadge } from '@/shared/components/ui/team-badge';
-import { formatDate, labelize } from '@/shared/utils/format';
+import { percentage } from '@/shared/stats';
+import { formatDate, formatDuration, formatNumber, formatPercentage } from '@/shared/utils/format';
 import { cn } from '@/shared/utils/ui';
 
 export function PlayerRoundHistory({ rounds }: { rounds: PlayerDetailsType['rounds'] }) {
@@ -33,14 +34,17 @@ export function PlayerRoundHistory({ rounds }: { rounds: PlayerDetailsType['roun
 
 function PlayerRoundHistoryHeader() {
     return (
-        <div className="hidden grid-cols-[minmax(220px,1.4fr)_minmax(100px,0.7fr)_minmax(440px,2.35fr)_82px] items-center gap-3.5 px-2.25 pb-2 font-semibold text-(--muted) text-[9px] uppercase tracking-[0.04em] min-[850px]:grid">
-            <span>Map / role</span>
-            <span>Team</span>
-            <span className="grid min-w-95 grid-cols-[minmax(150px,1.8fr)_repeat(3,minmax(52px,1fr))] items-center gap-3.5 [&>span:not(:first-child)]:text-center">
+        <div className="hidden grid-cols-[minmax(220px,1.4fr)_minmax(100px,0.7fr)_minmax(620px,3fr)_82px] items-center gap-3.5 px-2.25 pb-2 font-semibold text-(--muted) text-[9px] uppercase tracking-[0.04em] min-[850px]:grid">
+            <span>Map</span>
+            <span>Final role</span>
+            <span className="grid min-w-150 grid-cols-[minmax(140px,1.6fr)_repeat(6,minmax(52px,1fr))] items-center gap-3.5 [&>span:not(:first-child)]:text-center">
                 <span>Played</span>
                 <span>Kills</span>
                 <span>Deaths</span>
                 <span>Team kills</span>
+                <span>Damage</span>
+                <span>Accuracy</span>
+                <span>Survival</span>
             </span>
             <span>Result</span>
         </div>
@@ -52,19 +56,19 @@ function PlayerRoundRow({ entry }: { entry: PlayerDetailsType['rounds'][number] 
 
     return (
         <Link
-            className="group grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2.5 rounded-[10px] p-3 hover:bg-white/4.5 min-[850px]:grid-cols-[minmax(220px,1.4fr)_minmax(100px,0.7fr)_minmax(440px,2.35fr)_82px] min-[850px]:gap-3.5"
+            className="group grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2.5 rounded-[10px] p-3 hover:bg-white/4.5 min-[850px]:grid-cols-[minmax(220px,1.4fr)_minmax(100px,0.7fr)_minmax(620px,3fr)_82px] min-[850px]:gap-3.5"
             href={`/maps/${encodeURIComponent(entry.mapName)}/rounds/${entry.roundId}`}
         >
-            <span className="grid min-w-0 gap-0.75 max-[849px]:col-start-1 max-[849px]:row-start-1 min-[850px]:col-auto">
+            <span className="min-w-0 max-[849px]:col-start-1 max-[849px]:row-start-1 min-[850px]:col-auto">
                 <strong className="overflow-hidden text-ellipsis whitespace-nowrap text-sm">{entry.mapName}</strong>
-                <small className="font-semibold text-(--muted) text-[9px] uppercase tracking-[0.04em]">
-                    {entry.subroleName ? labelize(entry.subroleName) : 'Role unavailable'}
-                </small>
             </span>
             <span className="max-[849px]:col-start-1 max-[849px]:row-start-2 min-[850px]:col-auto">
-                <TeamBadge teamName={entry.teamName} />
+                <RoleBadge
+                    roleName={entry.subroleName}
+                    teamName={entry.teamName}
+                />
             </span>
-            <span className="grid min-w-95 grid-cols-[minmax(150px,1.8fr)_repeat(3,minmax(52px,1fr))] items-center gap-3.5 max-[849px]:col-span-2 max-[849px]:col-start-1 max-[849px]:row-start-3 max-[849px]:min-w-0 max-[559px]:grid-cols-[minmax(115px,1.7fr)_repeat(3,minmax(40px,1fr))] max-[559px]:gap-2">
+            <span className="grid min-w-150 grid-cols-[minmax(140px,1.6fr)_repeat(6,minmax(52px,1fr))] items-center gap-3.5 max-[849px]:col-span-2 max-[849px]:col-start-1 max-[849px]:row-start-3 max-[849px]:min-w-0 max-[849px]:grid-cols-3 max-[559px]:gap-2">
                 <time
                     className="font-bold text-(--text) text-sm tabular-nums max-[849px]:grid max-[849px]:gap-0.75 max-[559px]:text-[13px] max-[849px]:before:font-semibold max-[849px]:before:text-(--muted) max-[849px]:before:text-[9px] max-[849px]:before:uppercase max-[849px]:before:tracking-[0.04em] max-[849px]:before:content-[attr(data-label)]"
                     data-label="Played"
@@ -84,6 +88,18 @@ function PlayerRoundRow({ entry }: { entry: PlayerDetailsType['rounds'][number] 
                     label="Team kills"
                     value={entry.teamKills}
                 />
+                <PlayerRoundStat
+                    label="Damage"
+                    value={formatNumber(entry.damageDealt)}
+                />
+                <PlayerRoundStat
+                    label="Accuracy"
+                    value={formatPercentage(percentage(entry.shotsHit ?? 0, entry.shotsFired ?? 0))}
+                />
+                <PlayerRoundStat
+                    label="Survival"
+                    value={formatDuration(entry.survivalSeconds)}
+                />
             </span>
             <span
                 className={cn(
@@ -100,7 +116,7 @@ function PlayerRoundRow({ entry }: { entry: PlayerDetailsType['rounds'][number] 
     );
 }
 
-function PlayerRoundStat({ label, value }: { label: string; value: number }) {
+function PlayerRoundStat({ label, value }: { label: string; value: number | string }) {
     return (
         <b
             className="text-center text-(--text) text-[15px] tabular-nums max-[849px]:grid max-[849px]:gap-0.75 max-[559px]:text-[13px] max-[849px]:before:font-semibold max-[849px]:before:text-(--muted) max-[849px]:before:text-[9px] max-[849px]:before:uppercase max-[849px]:before:tracking-[0.04em] max-[849px]:before:content-[attr(data-label)]"

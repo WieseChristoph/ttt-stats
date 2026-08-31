@@ -4,9 +4,10 @@ import { ArrowUpRight, CalendarDays, Search, Skull, Swords, Users } from 'lucide
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import type { MapCardType } from '@/features/maps/map-data';
-import { formatDate, formatNumber } from '@/shared/utils/format';
+import { getTeamPresentation } from '@/shared/team';
+import { formatDate, formatDuration, formatNumber, formatPercentage } from '@/shared/utils/format';
 
-type MapSortType = 'recent' | 'rounds' | 'players' | 'deaths' | 'name';
+type MapSortType = 'recent' | 'rounds' | 'players' | 'deaths' | 'lethality' | 'duration' | 'name';
 type MapBrowserPropsType = { maps: MapCardType[] };
 
 const sortOptions = [
@@ -14,6 +15,8 @@ const sortOptions = [
     { value: 'rounds', label: 'Most rounds' },
     { value: 'players', label: 'Most players' },
     { value: 'deaths', label: 'Most deaths' },
+    { value: 'lethality', label: 'Lethality' },
+    { value: 'duration', label: 'Avg. duration' },
     { value: 'name', label: 'Name' },
 ] satisfies Array<{ value: MapSortType; label: string }>;
 
@@ -37,6 +40,14 @@ export function MapBrowser({ maps }: MapBrowserPropsType) {
                 }
                 if (sort === 'deaths') {
                     return right.deaths - left.deaths;
+                }
+                if (sort === 'lethality') {
+                    return (
+                        right.deaths / Math.max(right.playerRounds, 1) - left.deaths / Math.max(left.playerRounds, 1)
+                    );
+                }
+                if (sort === 'duration') {
+                    return right.averageRoundDurationSeconds - left.averageRoundDurationSeconds;
                 }
                 return new Date(right.lastPlayed ?? 0).getTime() - new Date(left.lastPlayed ?? 0).getTime();
             });
@@ -108,6 +119,8 @@ function MapBrowserToolbar({
 }
 
 function MapCard({ map }: { map: MapCardType }) {
+    const leader = map.leadingTeam ? getTeamPresentation(map.leadingTeam.team) : null;
+
     return (
         <Link
             className="group rounded-2xl border border-white/10 bg-[#111722] p-5 transition hover:-translate-y-0.5 hover:border-violet-400/50 hover:bg-[#151c29]"
@@ -138,6 +151,29 @@ function MapCard({ map }: { map: MapCardType }) {
                 <span className="rounded-xl bg-white/[0.035] p-3 text-slate-400">
                     <Skull className="mb-2 size-4 text-rose-400" />
                     <b className="mr-1 text-lg text-white">{formatNumber(map.deaths)}</b> deaths
+                </span>
+            </div>
+            <div className="mt-3 grid grid-cols-3 gap-2 border-white/8 border-t pt-3 text-center text-[10px] text-slate-500">
+                <span>
+                    <b className="block text-white text-xs">{formatDuration(map.averageRoundDurationSeconds)}</b>Avg.
+                    round
+                </span>
+                <span>
+                    <b className="block text-white text-xs">
+                        {formatNumber(map.deaths / Math.max(map.playerRounds, 1))}
+                    </b>
+                    Deaths / player
+                </span>
+                <span>
+                    <b
+                        className="block truncate text-xs"
+                        style={{ color: leader?.color }}
+                    >
+                        {leader?.label ?? '—'}
+                    </b>
+                    {map.leadingTeam
+                        ? formatPercentage((map.leadingTeam.wins / Math.max(map.rounds, 1)) * 100)
+                        : 'Team edge'}
                 </span>
             </div>
         </Link>

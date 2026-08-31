@@ -1,27 +1,62 @@
 import { asc, count, countDistinct, desc, eq, inArray, sql } from 'drizzle-orm';
 import { db } from '@/db/drizzle';
-import { statsDeath, statsMap, statsRound, statsRoundEvent, statsRoundPlayer, statsSession } from '@/db/schema';
+import {
+    statsDeath,
+    statsMap,
+    statsPlayer,
+    statsRound,
+    statsRoundEvent,
+    statsRoundPlayer,
+    statsSession,
+    statsWeaponStat,
+} from '@/db/schema';
+import { enemyKillCount, headshotCount, teamKillCount } from '@/db/stats-expressions';
+import { applySteamProfile, getSteamProfiles } from '@/features/steam/steam-profile-service';
 
 export async function getMapCards() {
-    return db
-        .select({
-            id: statsMap.id,
-            name: statsMap.name,
-            sessions: countDistinct(statsSession.id),
-            rounds: countDistinct(statsRound.id),
-            players: countDistinct(statsRoundPlayer.playerId),
-            deaths: countDistinct(statsDeath.eventId),
-            lastPlayed: sql<string>`max(${statsRound.endedAt})`,
-            firstPlayed: sql<string>`min(${statsRound.startedAt})`,
-        })
-        .from(statsMap)
-        .leftJoin(statsSession, eq(statsSession.mapId, statsMap.id))
-        .leftJoin(statsRound, eq(statsRound.sessionId, statsSession.id))
-        .leftJoin(statsRoundPlayer, eq(statsRoundPlayer.roundId, statsRound.id))
-        .leftJoin(statsRoundEvent, eq(statsRoundEvent.roundId, statsRound.id))
-        .leftJoin(statsDeath, eq(statsDeath.eventId, statsRoundEvent.id))
-        .groupBy(statsMap.id)
-        .orderBy(desc(sql`max(${statsRound.endedAt})`), asc(statsMap.name));
+    const [maps, teamWins] = await Promise.all([
+        db
+            .select({
+                id: statsMap.id,
+                name: statsMap.name,
+                sessions: countDistinct(statsSession.id),
+                rounds: countDistinct(statsRound.id),
+                players: countDistinct(statsRoundPlayer.playerId),
+                deaths: countDistinct(statsDeath.eventId),
+                playerRounds: countDistinct(statsRoundPlayer.id),
+                teamKills:
+                    sql<number>`count(distinct ${statsDeath.eventId}) filter (where ${statsDeath.isTeamkill})`.mapWith(
+                        Number,
+                    ),
+                averageRoundDurationSeconds: sql<number>`coalesce((select avg(extract(epoch from (r.ended_at - r.started_at))) from stats_session s inner join stats_round r on r.session_id = s.id where s.map_id = ${statsMap.id}), 0)::double precision`,
+                lastPlayed: sql<string>`max(${statsRound.endedAt})`,
+                firstPlayed: sql<string>`min(${statsRound.startedAt})`,
+            })
+            .from(statsMap)
+            .leftJoin(statsSession, eq(statsSession.mapId, statsMap.id))
+            .leftJoin(statsRound, eq(statsRound.sessionId, statsSession.id))
+            .leftJoin(statsRoundPlayer, eq(statsRoundPlayer.roundId, statsRound.id))
+            .leftJoin(statsRoundEvent, eq(statsRoundEvent.roundId, statsRound.id))
+            .leftJoin(statsDeath, eq(statsDeath.eventId, statsRoundEvent.id))
+            .groupBy(statsMap.id)
+            .orderBy(desc(sql`max(${statsRound.endedAt})`), asc(statsMap.name)),
+        db
+            .select({ mapId: statsMap.id, team: statsRound.winningTeam, wins: count(statsRound.id) })
+            .from(statsMap)
+            .innerJoin(statsSession, eq(statsSession.mapId, statsMap.id))
+            .innerJoin(statsRound, eq(statsRound.sessionId, statsSession.id))
+            .groupBy(statsMap.id, statsRound.winningTeam)
+            .orderBy(desc(count(statsRound.id))),
+    ]);
+
+    const winsByMap = new Map<number, (typeof teamWins)[number]>();
+    for (const entry of teamWins) {
+        if (!winsByMap.has(entry.mapId)) {
+            winsByMap.set(entry.mapId, entry);
+        }
+    }
+
+    return maps.map((map) => ({ ...map, leadingTeam: winsByMap.get(map.id) ?? null }));
 }
 
 export type MapCardType = Awaited<ReturnType<typeof getMapCards>>[number];
@@ -36,7 +71,7 @@ export async function getMapDetails(mapName: string, requestedPage: number) {
         return undefined;
     }
 
-    const [totalsRows, deathTotalsRows] = await Promise.all([
+    const [totalsRows, deathTotalsRows, participationRows, teamWins, weapons, leaders] = await Promise.all([
         db
             .select({
                 sessions: countDistinct(statsSession.id),
@@ -47,18 +82,75 @@ export async function getMapDetails(mapName: string, requestedPage: number) {
             .leftJoin(statsRound, eq(statsRound.sessionId, statsSession.id))
             .where(eq(statsSession.mapId, map.id)),
         db
-            .select({ deaths: count(statsDeath.eventId) })
+            .select({
+                deaths: count(statsDeath.eventId),
+                enemyKills: enemyKillCount(),
+                teamKills: teamKillCount(),
+                headshots: headshotCount(),
+                medianEliminationSeconds: sql<
+                    number | null
+                >`percentile_cont(0.5) within group (order by extract(epoch from (${statsRoundEvent.occurredAt} - ${statsRound.startedAt}))) filter (where ${statsRoundEvent.occurredAt} is not null)`,
+            })
             .from(statsSession)
             .innerJoin(statsRound, eq(statsRound.sessionId, statsSession.id))
             .innerJoin(statsRoundEvent, eq(statsRoundEvent.roundId, statsRound.id))
             .innerJoin(statsDeath, eq(statsDeath.eventId, statsRoundEvent.id))
             .where(eq(statsSession.mapId, map.id)),
+        db
+            .select({ playerRounds: count(statsRoundPlayer.id) })
+            .from(statsSession)
+            .innerJoin(statsRound, eq(statsRound.sessionId, statsSession.id))
+            .innerJoin(statsRoundPlayer, eq(statsRoundPlayer.roundId, statsRound.id))
+            .where(eq(statsSession.mapId, map.id)),
+        db
+            .select({ team: statsRound.winningTeam, wins: count(statsRound.id) })
+            .from(statsSession)
+            .innerJoin(statsRound, eq(statsRound.sessionId, statsSession.id))
+            .where(eq(statsSession.mapId, map.id))
+            .groupBy(statsRound.winningTeam)
+            .orderBy(desc(count(statsRound.id))),
+        db
+            .select({
+                weaponName: statsWeaponStat.weaponName,
+                kills: sql<number>`sum(${statsWeaponStat.kills})`.mapWith(Number),
+                users: countDistinct(statsRoundPlayer.playerId),
+                shotsFired: sql<number>`sum(${statsWeaponStat.shotsFired})`.mapWith(Number),
+                shotsHit: sql<number>`sum(${statsWeaponStat.shotsHit})`.mapWith(Number),
+            })
+            .from(statsWeaponStat)
+            .innerJoin(statsRoundPlayer, eq(statsWeaponStat.roundPlayerId, statsRoundPlayer.id))
+            .innerJoin(statsRound, eq(statsRoundPlayer.roundId, statsRound.id))
+            .innerJoin(statsSession, eq(statsRound.sessionId, statsSession.id))
+            .where(eq(statsSession.mapId, map.id))
+            .groupBy(statsWeaponStat.weaponName)
+            .orderBy(desc(sql`sum(${statsWeaponStat.kills})`))
+            .limit(10),
+        db
+            .select({
+                steamId: statsPlayer.steamId,
+                rounds: count(statsRoundPlayer.id),
+                kills: sql<number>`sum(${statsRoundPlayer.kills} - ${statsRoundPlayer.teamKills})`.mapWith(Number),
+                deaths: sql<number>`sum(${statsRoundPlayer.deaths})`.mapWith(Number),
+                wins: sql<number>`sum(case when ${statsRound.winningTeam} = ${statsRoundPlayer.finalTeamName} then 1 else 0 end)`.mapWith(
+                    Number,
+                ),
+            })
+            .from(statsPlayer)
+            .innerJoin(statsRoundPlayer, eq(statsRoundPlayer.playerId, statsPlayer.id))
+            .innerJoin(statsRound, eq(statsRoundPlayer.roundId, statsRound.id))
+            .innerJoin(statsSession, eq(statsRound.sessionId, statsSession.id))
+            .where(eq(statsSession.mapId, map.id))
+            .groupBy(statsPlayer.id)
+            .having(sql`count(${statsRoundPlayer.id}) >= 5`)
+            .orderBy(desc(sql`sum(${statsRoundPlayer.kills} - ${statsRoundPlayer.teamKills})`))
+            .limit(10),
     ]);
     const totals = totalsRows[0];
     const totalSessions = totals?.sessions ?? 0;
     const totalRounds = totals?.rounds ?? 0;
     const averageRoundDurationSeconds = totals?.averageRoundDurationSeconds ?? 0;
     const totalDeaths = deathTotalsRows[0]?.deaths ?? 0;
+    const profiles = await getSteamProfiles(leaders.map((leader) => leader.steamId));
     const totalPages = Math.max(1, Math.ceil(totalSessions / MapHistoryPageSize));
     const page = Math.min(requestedPage, totalPages);
 
@@ -107,6 +199,11 @@ export async function getMapDetails(mapName: string, requestedPage: number) {
         totalRounds,
         averageRoundDurationSeconds,
         totalDeaths,
+        playerRounds: participationRows[0]?.playerRounds ?? 0,
+        combat: deathTotalsRows[0],
+        teamWins,
+        weapons,
+        leaders: leaders.map((leader) => applySteamProfile(leader, profiles)),
         pagination: { page, pageSize: MapHistoryPageSize, totalPages },
         sessions: sessions.map((session) => ({
             ...session,

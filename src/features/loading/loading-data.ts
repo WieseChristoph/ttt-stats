@@ -10,6 +10,7 @@ import {
     statsSession,
     statsWeaponStat,
 } from '@/db/schema';
+import { eligibleHeadshotKillCondition, eligibleHeadshotKillCount, headshotCount } from '@/db/stats-expressions';
 import { getLatestRoundDetails } from '@/features/rounds/round-data';
 import { applySteamProfile, getSteamProfiles, type SteamProfileType } from '@/features/steam/steam-profile-service';
 
@@ -63,6 +64,7 @@ export async function getLoadingSnapshot(mapName?: string, steamId?: string) {
                 sessions: countDistinct(statsSession.id),
                 players: countDistinct(statsPlayer.id),
                 deaths: countDistinct(statsDeath.eventId),
+                averageRoundDurationSeconds: sql<number>`coalesce((select avg(extract(epoch from (r.ended_at - r.started_at))) from stats_session s inner join stats_round r on r.session_id = s.id where s.map_id = ${latestRound.session.mapId}), 0)::double precision`,
             })
             .from(statsRound)
             .innerJoin(statsSession, eq(statsRound.sessionId, statsSession.id))
@@ -78,6 +80,7 @@ export async function getLoadingSnapshot(mapName?: string, steamId?: string) {
                       sessions: countDistinct(statsSession.id),
                       players: countDistinct(statsPlayer.id),
                       deaths: countDistinct(statsDeath.eventId),
+                      averageRoundDurationSeconds: sql<number>`coalesce((select avg(extract(epoch from (r.ended_at - r.started_at))) from stats_session s inner join stats_round r on r.session_id = s.id where s.map_id = ${statsMap.id}), 0)::double precision`,
                   })
                   .from(statsMap)
                   .leftJoin(statsSession, eq(statsSession.mapId, statsMap.id))
@@ -87,6 +90,7 @@ export async function getLoadingSnapshot(mapName?: string, steamId?: string) {
                   .leftJoin(statsRoundEvent, eq(statsRoundEvent.roundId, statsRound.id))
                   .leftJoin(statsDeath, eq(statsDeath.eventId, statsRoundEvent.id))
                   .where(eq(statsMap.name, mapName))
+                  .groupBy(statsMap.id)
             : Promise.resolve([]),
         steamId
             ? db
@@ -100,6 +104,13 @@ export async function getLoadingSnapshot(mapName?: string, steamId?: string) {
                       wins: sql<number>`coalesce(sum(case when ${statsRound.winningTeam} = ${statsRoundPlayer.finalTeamName} then 1 else 0 end), 0)`.mapWith(
                           Number,
                       ),
+                      telemetryRounds:
+                          sql<number>`count(*) filter (where ${statsRoundPlayer.shotsFired} is not null)`.mapWith(
+                              Number,
+                          ),
+                      shotsFired: sql<number>`sum(${statsRoundPlayer.shotsFired})`.mapWith(Number),
+                      shotsHit: sql<number>`sum(${statsRoundPlayer.shotsHit})`.mapWith(Number),
+                      damageDealt: sql<number>`sum(${statsRoundPlayer.damageDealt})`.mapWith(Number),
                   })
                   .from(statsPlayer)
                   .leftJoin(statsRoundPlayer, eq(statsRoundPlayer.playerId, statsPlayer.id))
@@ -114,10 +125,16 @@ export async function getLoadingSnapshot(mapName?: string, steamId?: string) {
         ? await Promise.all([
               getSteamProfiles([requestedPlayerRecord.steamId]),
               db
-                  .select({ headshots: count(statsDeath.eventId) })
+                  .select({
+                      headshots: headshotCount(),
+                      headshotEligibleKills: eligibleHeadshotKillCount(),
+                  })
                   .from(statsDeath)
                   .where(
-                      and(eq(statsDeath.attackerPlayerId, requestedPlayerRecord.playerId), eq(statsDeath.hitgroup, 1)),
+                      and(
+                          eq(statsDeath.attackerPlayerId, requestedPlayerRecord.playerId),
+                          eligibleHeadshotKillCondition(),
+                      ),
                   ),
               db
                   .select({
@@ -145,6 +162,7 @@ export async function getLoadingSnapshot(mapName?: string, steamId?: string) {
                   ...requestedPlayerRecord,
                   ...applySteamProfile(requestedPlayerRecord, requestedPlayerProfiles),
                   headshots: requestedPlayerHeadshots[0]?.headshots ?? 0,
+                  headshotEligibleKills: requestedPlayerHeadshots[0]?.headshotEligibleKills ?? 0,
                   favoriteWeapon: requestedPlayerWeapons[0]?.weaponName ?? null,
               }
             : null,

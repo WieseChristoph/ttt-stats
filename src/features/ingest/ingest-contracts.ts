@@ -1,18 +1,8 @@
 import { z } from 'zod';
+import { type HitGroupType, HitGroupValues } from '@/shared/stats';
 import { normalizeTeamName } from '@/shared/team';
 
-export const HitGroupValues = {
-    generic: 0,
-    head: 1,
-    chest: 2,
-    stomach: 3,
-    leftArm: 4,
-    rightArm: 5,
-    leftLeg: 6,
-    rightLeg: 7,
-    gear: 10,
-} satisfies Record<string, number>;
-export type HitGroupType = (typeof HitGroupValues)[keyof typeof HitGroupValues];
+export { type HitGroupType, HitGroupValues };
 
 const SteamIdSchema = z.string().regex(/^\d{17}$/, 'Steam ID must contain 17 digits');
 

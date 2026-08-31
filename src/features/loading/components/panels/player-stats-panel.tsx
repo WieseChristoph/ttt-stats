@@ -1,5 +1,6 @@
 import { Activity, Crosshair, Shield, Skull, Trophy, Users } from 'lucide-react';
 import type { LoadingSnapshotType } from '@/features/loading/loading-data';
+import { enemyKills, percentage } from '@/shared/stats';
 import { displayName, formatNumber, labelize } from '@/shared/utils/format';
 import styles from '../loading-screen.module.css';
 import { LoadingMetric, PanelHeader, PlayerAvatar } from '../loading-ui';
@@ -36,6 +37,8 @@ function PlayerStatsContent({
     player: NonNullable<LoadingSnapshotType['requestedPlayer']>;
     playerName: string;
 }) {
+    const combatKills = enemyKills(player.kills, player.teamKills);
+
     return (
         <>
             <div className={styles.playerContent}>
@@ -59,8 +62,8 @@ function PlayerStatsContent({
                     />
                     <LoadingMetric
                         icon={<Crosshair />}
-                        label="Kills"
-                        value={formatNumber(player.kills)}
+                        label="Enemy kills"
+                        value={formatNumber(combatKills)}
                     />
                     <LoadingMetric
                         icon={<Skull />}
@@ -71,7 +74,7 @@ function PlayerStatsContent({
                         icon={<Activity />}
                         label="K/D"
                         value={
-                            player.deaths ? formatNumber(player.kills / player.deaths) : player.kills ? 'Perfect' : '—'
+                            player.deaths ? formatNumber(combatKills / player.deaths) : combatKills ? 'Perfect' : '—'
                         }
                     />
                     <LoadingMetric
@@ -84,18 +87,30 @@ function PlayerStatsContent({
             <div className={styles.playerExtras}>
                 <LoadingMetric
                     icon={<Crosshair />}
-                    label="Headshots"
-                    value={formatNumber(player.headshots)}
+                    label={player.telemetryRounds ? 'Accuracy' : 'Headshots'}
+                    value={
+                        player.telemetryRounds
+                            ? `${Math.round(percentage(Number(player.shotsHit ?? 0), Number(player.shotsFired ?? 0)) ?? 0)}%`
+                            : formatNumber(player.headshots)
+                    }
                 />
                 <LoadingMetric
                     icon={<Activity />}
                     label="Headshot rate"
-                    value={player.kills ? `${Math.round((player.headshots / player.kills) * 100)}%` : '—'}
+                    value={
+                        player.headshotEligibleKills
+                            ? `${Math.round((player.headshots / player.headshotEligibleKills) * 100)}%`
+                            : '—'
+                    }
                 />
                 <LoadingMetric
                     icon={<Skull />}
-                    label="Teamkills"
-                    value={formatNumber(player.teamKills)}
+                    label={player.telemetryRounds ? 'Damage / round' : 'Teamkills'}
+                    value={
+                        player.telemetryRounds
+                            ? formatNumber(Number(player.damageDealt ?? 0) / player.telemetryRounds)
+                            : formatNumber(player.teamKills)
+                    }
                 />
                 <LoadingMetric
                     icon={<Trophy />}

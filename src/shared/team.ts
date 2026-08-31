@@ -138,6 +138,8 @@ export function getRolePresentation(
         if (role) {
             return role;
         }
+
+        return { ...getTeamPresentation(teamName), label: labelize(subroleName) };
     }
 
     return getTeamPresentation(teamName);

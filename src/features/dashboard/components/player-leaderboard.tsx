@@ -21,7 +21,8 @@ export function PlayerLeaderboard({ players }: PlayerLeaderboardPropsType) {
 }
 
 function LeaderboardRow({ index, player }: { index: number; player: DashboardDataType['topPlayers'][number] }) {
-    const killDeathRatio = player.deaths === 0 ? player.kills : player.kills / player.deaths;
+    const enemyKills = Math.max(0, player.kills - player.teamKills);
+    const killDeathRatio = player.deaths === 0 ? enemyKills : enemyKills / player.deaths;
     const winRate = player.rounds === 0 ? 0 : (player.wins / player.rounds) * 100;
 
     return (
@@ -51,8 +52,8 @@ function LeaderboardRow({ index, player }: { index: number; player: DashboardDat
                 <small className="text-(--muted) text-[9px] uppercase">Win rate</small>
             </span>
             <span className="grid content-center gap-0.5 text-right">
-                <strong className="text-(--amber) text-[15px]">{formatNumber(player.kills)}</strong>
-                <small className="text-(--muted) text-[9px] uppercase">Kills</small>
+                <strong className="text-(--amber) text-[15px]">{formatNumber(enemyKills)}</strong>
+                <small className="text-(--muted) text-[9px] uppercase">Enemy kills</small>
             </span>
             <ArrowUpRight className="w-3.75 text-(--muted)" />
         </Link>

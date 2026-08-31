@@ -57,7 +57,10 @@ export const statsRound = pgTable(
         winningSubrole: varchar('winning_subrole', { length: 255 }),
         telemetryVersion: integer('telemetry_version').notNull().default(1),
     },
-    (table) => [uniqueIndex('stats_round_session_key_unique').on(table.sessionId, table.roundKey)],
+    (table) => [
+        uniqueIndex('stats_round_session_key_unique').on(table.sessionId, table.roundKey),
+        index('stats_round_started_at_idx').on(table.startedAt),
+    ],
 );
 
 export const statsPlayer = pgTable(
@@ -94,7 +97,10 @@ export const statsRoundPlayer = pgTable(
         shotsHit: integer('shots_hit'),
         survivalSeconds: real('survival_seconds'),
     },
-    (table) => [uniqueIndex('stats_round_player_unique').on(table.roundId, table.playerId)],
+    (table) => [
+        uniqueIndex('stats_round_player_unique').on(table.roundId, table.playerId),
+        index('stats_round_player_player_id_idx').on(table.playerId),
+    ],
 );
 
 export const statsRoundEvent = pgTable(
@@ -117,22 +123,29 @@ export const statsRoundEvent = pgTable(
     ],
 );
 
-export const statsDeath = pgTable('stats_death', {
-    eventId: integer('event_id')
-        .references(() => statsRoundEvent.id, { onDelete: 'cascade' })
-        .primaryKey(),
-    victimPlayerId: integer('victim_player_id')
-        .references(() => statsPlayer.id)
-        .notNull(),
-    attackerPlayerId: integer('attacker_player_id').references(() => statsPlayer.id),
-    victimTeamName: varchar('victim_team_name', { length: 255 }).notNull(),
-    victimSubroleName: varchar('victim_subrole_name', { length: 255 }),
-    attackerTeamName: varchar('attacker_team_name', { length: 255 }),
-    attackerSubroleName: varchar('attacker_subrole_name', { length: 255 }),
-    isTeamkill: boolean('is_teamkill').notNull().default(false),
-    inflictor: varchar('inflictor', { length: 255 }),
-    hitgroup: integer('hitgroup'),
-});
+export const statsDeath = pgTable(
+    'stats_death',
+    {
+        eventId: integer('event_id')
+            .references(() => statsRoundEvent.id, { onDelete: 'cascade' })
+            .primaryKey(),
+        victimPlayerId: integer('victim_player_id')
+            .references(() => statsPlayer.id)
+            .notNull(),
+        attackerPlayerId: integer('attacker_player_id').references(() => statsPlayer.id),
+        victimTeamName: varchar('victim_team_name', { length: 255 }).notNull(),
+        victimSubroleName: varchar('victim_subrole_name', { length: 255 }),
+        attackerTeamName: varchar('attacker_team_name', { length: 255 }),
+        attackerSubroleName: varchar('attacker_subrole_name', { length: 255 }),
+        isTeamkill: boolean('is_teamkill').notNull().default(false),
+        inflictor: varchar('inflictor', { length: 255 }),
+        hitgroup: integer('hitgroup'),
+    },
+    (table) => [
+        index('stats_death_attacker_player_id_idx').on(table.attackerPlayerId),
+        index('stats_death_victim_player_id_idx').on(table.victimPlayerId),
+    ],
+);
 
 export const statsRoleChange = pgTable('stats_role_change', {
     eventId: integer('event_id')

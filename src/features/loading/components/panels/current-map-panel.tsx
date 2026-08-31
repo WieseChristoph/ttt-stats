@@ -1,7 +1,7 @@
-import { Activity, Clock3, Map as MapIcon, Skull, Trophy, Users } from 'lucide-react';
+import { Activity, Clock3, Map as MapIcon, Skull, Trophy } from 'lucide-react';
 import type { LoadingSnapshotType } from '@/features/loading/loading-data';
 import { getTeamPresentation } from '@/shared/team';
-import { formatNumber } from '@/shared/utils/format';
+import { formatDuration, formatNumber } from '@/shared/utils/format';
 import { cn } from '@/shared/utils/ui';
 import styles from '../loading-screen.module.css';
 import { LoadingMetric, PanelHeader, TeamPill } from '../loading-ui';
@@ -37,14 +37,14 @@ export function CurrentMapPanel({ snapshot }: CurrentMapPanelPropsType) {
                     value={formatNumber(currentMapStats?.sessions)}
                 />
                 <LoadingMetric
-                    icon={<Users />}
-                    label="Players"
-                    value={formatNumber(currentMapStats?.players)}
+                    icon={<Activity />}
+                    label="Avg round"
+                    value={formatDuration(currentMapStats?.averageRoundDurationSeconds)}
                 />
                 <LoadingMetric
                     icon={<Skull />}
-                    label="Deaths"
-                    value={formatNumber(currentMapStats?.deaths)}
+                    label="Deaths / round"
+                    value={formatNumber(currentMapStats?.rounds ? currentMapStats.deaths / currentMapStats.rounds : 0)}
                 />
             </div>
             <div className={styles.currentMapFooter}>

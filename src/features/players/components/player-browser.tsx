@@ -1,13 +1,14 @@
 'use client';
 
-import { ArrowUpRight, Crosshair, Search, ShieldCheck, Skull, Swords } from 'lucide-react';
+import { ArrowUpRight, Crosshair, Search, ShieldCheck, Skull, Swords, Target } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import type { PlayerCardType } from '@/features/players/player-data';
 import { Avatar } from '@/shared/components/ui/avatar';
-import { displayName, formatNumber } from '@/shared/utils/format';
+import { AccuracyQualificationShots, enemyKills, percentage } from '@/shared/stats';
+import { displayName, formatNumber, formatPercentage } from '@/shared/utils/format';
 
-type PlayerSortType = 'kills' | 'wins' | 'rounds' | 'ratio' | 'recent' | 'name';
+type PlayerSortType = 'kills' | 'wins' | 'rounds' | 'ratio' | 'headshots' | 'accuracy' | 'damage' | 'recent' | 'name';
 type PlayerBrowserPropsType = { players: PlayerCardType[] };
 
 const sortOptions = [
@@ -15,6 +16,9 @@ const sortOptions = [
     { value: 'wins', label: 'Wins' },
     { value: 'rounds', label: 'Rounds' },
     { value: 'ratio', label: 'K/D' },
+    { value: 'headshots', label: 'Headshots' },
+    { value: 'accuracy', label: 'Accuracy' },
+    { value: 'damage', label: 'Damage' },
     { value: 'recent', label: 'Recent' },
     { value: 'name', label: 'Name' },
 ] satisfies Array<{ value: PlayerSortType; label: string }>;
@@ -24,12 +28,15 @@ const ratio = (kills: number, deaths: number) => (deaths === 0 ? kills : kills /
 export function PlayerBrowser({ players }: PlayerBrowserPropsType) {
     const [query, setQuery] = useState('');
     const [sort, setSort] = useState<PlayerSortType>('kills');
+    const [minimumRounds, setMinimumRounds] = useState(0);
 
     const visiblePlayers = useMemo(() => {
         const normalizedQuery = query.trim().toLocaleLowerCase();
         return players
-            .filter((player) =>
-                `${player.username ?? ''} ${player.steamId}`.toLocaleLowerCase().includes(normalizedQuery),
+            .filter(
+                (player) =>
+                    player.rounds >= minimumRounds &&
+                    `${player.username ?? ''} ${player.steamId}`.toLocaleLowerCase().includes(normalizedQuery),
             )
             .toSorted((left, right) => {
                 if (sort === 'name') {
@@ -44,14 +51,37 @@ export function PlayerBrowser({ players }: PlayerBrowserPropsType) {
                     return right.rounds - left.rounds;
                 }
                 if (sort === 'ratio') {
-                    return ratio(right.kills, right.deaths) - ratio(left.kills, left.deaths);
+                    return (
+                        ratio(enemyKills(right.kills, right.teamKills), right.deaths) -
+                        ratio(enemyKills(left.kills, left.teamKills), left.deaths)
+                    );
+                }
+                if (sort === 'headshots') {
+                    return right.headshots - left.headshots;
+                }
+                if (sort === 'accuracy') {
+                    const rightAccuracy =
+                        (right.shotsFired ?? 0) >= AccuracyQualificationShots
+                            ? (right.shotsHit ?? 0) / (right.shotsFired ?? 1)
+                            : -1;
+                    const leftAccuracy =
+                        (left.shotsFired ?? 0) >= AccuracyQualificationShots
+                            ? (left.shotsHit ?? 0) / (left.shotsFired ?? 1)
+                            : -1;
+                    return rightAccuracy - leftAccuracy;
+                }
+                if (sort === 'damage') {
+                    return (
+                        Number(right.damageDealt ?? 0) / Math.max(right.telemetryRounds, 1) -
+                        Number(left.damageDealt ?? 0) / Math.max(left.telemetryRounds, 1)
+                    );
                 }
                 if (sort === 'recent') {
                     return new Date(right.lastPlayed ?? 0).getTime() - new Date(left.lastPlayed ?? 0).getTime();
                 }
-                return right.kills - left.kills;
+                return enemyKills(right.kills, right.teamKills) - enemyKills(left.kills, left.teamKills);
             });
-    }, [players, query, sort]);
+    }, [minimumRounds, players, query, sort]);
 
     return (
         <>
@@ -62,6 +92,19 @@ export function PlayerBrowser({ players }: PlayerBrowserPropsType) {
                 onSortChange={setSort}
             />
             <p className="mb-3 text-slate-500 text-sm">{visiblePlayers.length} players</p>
+            <div className="mb-4 flex items-center gap-2 text-slate-500 text-xs">
+                <span>Minimum rounds</span>
+                {[0, 10, 25, 50].map((value) => (
+                    <button
+                        className={`rounded-lg px-2.5 py-1.5 ${minimumRounds === value ? 'bg-violet-500 text-white' : 'bg-white/5 hover:text-white'}`}
+                        key={value}
+                        onClick={() => setMinimumRounds(value)}
+                        type="button"
+                    >
+                        {value || 'All'}
+                    </button>
+                ))}
+            </div>
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {visiblePlayers.map((player) => (
                     <PlayerCard
@@ -120,6 +163,9 @@ function PlayerBrowserToolbar({
 
 function PlayerCard({ player }: { player: PlayerCardType }) {
     const winRate = player.rounds ? Math.round((player.wins / player.rounds) * 100) : 0;
+    const combatKills = enemyKills(player.kills, player.teamKills);
+    const accuracy = percentage(Number(player.shotsHit ?? 0), Number(player.shotsFired ?? 0));
+    const headshotRate = percentage(player.headshots, player.headshotEligibleKills);
 
     return (
         <Link
@@ -141,7 +187,7 @@ function PlayerCard({ player }: { player: PlayerCardType }) {
                 </div>
                 <ArrowUpRight className="size-5 text-slate-600 transition group-hover:text-violet-300" />
             </div>
-            <div className="grid grid-cols-4 gap-2 text-center">
+            <div className="grid grid-cols-3 gap-2 text-center">
                 <span className="rounded-xl bg-white/[0.035] p-2 text-slate-500 text-xs">
                     <Swords className="mx-auto mb-1 size-4 text-violet-400" />
                     <b className="block text-base text-white">{formatNumber(player.rounds)}</b>
@@ -149,17 +195,25 @@ function PlayerCard({ player }: { player: PlayerCardType }) {
                 </span>
                 <span className="rounded-xl bg-white/[0.035] p-2 text-slate-500 text-xs">
                     <Crosshair className="mx-auto mb-1 size-4 text-violet-400" />
-                    <b className="block text-base text-white">{formatNumber(player.kills)}</b>
-                    Kills
+                    <b className="block text-base text-white">{formatNumber(combatKills)}</b>
+                    Enemy kills
                 </span>
                 <span className="rounded-xl bg-white/[0.035] p-2 text-slate-500 text-xs">
                     <Skull className="mx-auto mb-1 size-4 text-rose-400" />
-                    <b className="block text-base text-white">{ratio(player.kills, player.deaths).toFixed(1)}</b>
+                    <b className="block text-base text-white">{ratio(combatKills, player.deaths).toFixed(1)}</b>
                     K/D
                 </span>
                 <span className="rounded-xl bg-white/[0.035] p-2 text-slate-500 text-xs">
                     <ShieldCheck className="mx-auto mb-1 size-4 text-emerald-400" />
                     <b className="block text-base text-white">{winRate}%</b>Wins
+                </span>
+                <span className="rounded-xl bg-white/[0.035] p-2 text-slate-500 text-xs">
+                    <Target className="mx-auto mb-1 size-4 text-emerald-400" />
+                    <b className="block text-base text-white">{formatPercentage(headshotRate)}</b>Headshots
+                </span>
+                <span className="rounded-xl bg-white/[0.035] p-2 text-slate-500 text-xs">
+                    <Crosshair className="mx-auto mb-1 size-4 text-violet-400" />
+                    <b className="block text-base text-white">{formatPercentage(accuracy)}</b>Accuracy
                 </span>
             </div>
         </Link>
